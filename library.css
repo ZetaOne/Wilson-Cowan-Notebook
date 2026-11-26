@@ -69,3 +69,8 @@
 
 .ctext { min-width: 0 }
 .kit .tag, .ktags .tag { white-space: normal }
+/* "Open in editor": runs the file on the reader's computer through the pyauto-xpp editor */
+.ktags .kopen { margin-left: auto; padding: 3px 10px; border-radius: 999px; font-size: .75rem; font-weight: 600; text-decoration: none;
+                color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent) }
+.ktags .kopen:hover { background: color-mix(in srgb, var(--accent) 14%, transparent) }
+.ktags .kopen::before { content: "▶ " }
