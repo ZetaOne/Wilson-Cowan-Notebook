@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Wilson-Cowan-Notebook</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<style id="book-style">:root {
+<style>:root {
   --ink: #1d232b; --muted: #5b6672; --rule: #dfe3e8; --paper: #fdfcf9; --side: #f3f1ec;
   --accent: #0e7c86; --accent2: #b0306a; --link: #0b6b8a;
   --def: #e8f3f4; --thm: #f1ecf8; --idea: #fff6e0; --ex: #eef5ea; --warn: #fdecea; --paper-box: #eaf0fb;
@@ -128,13 +128,6 @@ figure.missing .ph { padding: 3rem 1rem; background: repeating-linear-gradient(4
   a.code { display: none; }
   .animtag { display: none; }
 }
-</style>
-<style id="wc-theme-css">
-#wc-theme{position:fixed;right:14px;bottom:14px;z-index:9999;font:13px/1.2 system-ui,sans-serif}
-#wc-theme select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid rgba(127,127,127,.5);
-  background:rgba(255,255,255,.92);color:#222;box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer}
-html.cx-dark #wc-theme select{background:rgba(30,30,30,.92);color:#eee}
-@media print{#wc-theme{display:none}}
 </style>
 <script>
   // apply the saved display choices before the page is drawn (no flash of the wrong colours or size);
@@ -2829,48 +2822,6 @@ c-16-25.333-24-45-24-59z"/></svg></span></span></span></span><span class="vlist-
 </ul>
 </section>
 </main>
-<script id="wc-theme-js" data-base="assets/themes/">
-(function(){
-  var T = [["tufte", "Tufte", false, "edwardtufte/tufte-css"], ["tufte-dark", "Tufte Dark", true, "edwardtufte/tufte-css"], ["classic", "Classic", false, "this book"], ["latex", "LaTeX", false, "vincentdoerig/latex-css"], ["latex-dark", "LaTeX Dark", true, "vincentdoerig/latex-css"], ["pico", "Pico", false, "picocss/pico"], ["pico-dark", "Pico Dark", true, "picocss/pico"], ["water-light", "Water", false, "kognise/water.css"], ["water-dark", "Ink", true, "kognise/water.css"], ["simple", "Simple", false, "kevquirk/simple.css"], ["simple-dark", "Simple Dark", true, "kevquirk/simple.css"], ["sakura", "Sakura", false, "oxalorg/sakura"], ["sakura-dark", "Dusk", true, "oxalorg/sakura"], ["sakura-earthly", "Moss", false, "oxalorg/sakura"], ["newcss", "Fresh", false, "xz/new.css"], ["newcss-dark", "Fresh Dark", true, "xz/new.css"], ["mvp", "Bold", false, "andybrewer/mvp"], ["mvp-dark", "Bold Dark", true, "andybrewer/mvp"], ["awsm", "Essay", false, "igoradamenko/awsm.css"], ["github-light", "GitHub", false, "sindresorhus/github-markdown-css"], ["github-dark", "GitHub Night", true, "sindresorhus/github-markdown-css"], ["bamboo", "Nord", false, "rilwis/bamboo"], ["bamboo-dark", "Nord Night", true, "rilwis/bamboo"], ["marx", "Plain", false, "mblode/marx"]], EXTRA = {"pico": "@media (min-width:1000px){body>main{max-width:900px;padding-left:2rem;padding-right:2rem}}", "pico-dark": "@media (min-width:1000px){body>main{max-width:900px;padding-left:2rem;padding-right:2rem}}", "github-light": "body.markdown-body{margin:0}body.markdown-body>main{box-sizing:border-box;max-width:980px;margin:0 auto;padding:45px}", "github-dark": "body.markdown-body{margin:0}body.markdown-body>main{box-sizing:border-box;max-width:980px;margin:0 auto;padding:45px}"}, KEY = "wc.theme";
-  var base = (document.currentScript && document.currentScript.getAttribute("data-base")) || "assets/themes/";
-  function anchorEl(){            // the element at the top of the window, to keep the reading position
-    if (location.hash && window.scrollY < 5) { var h = document.getElementById(location.hash.slice(1)); if (h) return h; }
-    var e = document.elementFromPoint(Math.min(600, window.innerWidth - 20), 8);
-    return (e && e !== document.body && e !== document.documentElement) ? e : null;
-  }
-  function restore(el){ if (el && el.scrollIntoView) el.scrollIntoView({block: "start"}); }
-  function apply(k, first){
-    var el = first ? (location.hash ? document.getElementById(location.hash.slice(1)) : null) : anchorEl();
-    var own = document.getElementById("book-style");
-    ["wc-ext","wc-compat","wc-extra"].forEach(function(id){var e=document.getElementById(id); if(e) e.remove();});
-    document.documentElement.classList.remove("cx-dark");
-    document.body.classList.remove("markdown-body"); document.body.classList.remove("latex-dark");
-    var t = T.filter(function(x){return x[0]===k;})[0] || T.filter(function(x){return x[0]==="tufte";})[0];
-    if (t[0] === "classic") { if (own) own.disabled = false; restore(el); return t[0]; }
-    if (own) own.disabled = true;
-    var l = document.createElement("link"); l.rel="stylesheet"; l.id="wc-ext"; l.href=base+t[0]+".css"; l.onload=function(){ setTimeout(function(){ restore(el); }, 30); }; document.head.appendChild(l);
-    var c = document.createElement("link"); c.rel="stylesheet"; c.id="wc-compat"; c.href=base+"compat.css"; document.head.appendChild(c);
-    if (EXTRA[t[0]]) { var s=document.createElement("style"); s.id="wc-extra"; s.textContent=EXTRA[t[0]]; document.head.appendChild(s); }
-    if (t[2]) document.documentElement.classList.add("cx-dark");
-    if (t[0].indexOf("github")===0) document.body.classList.add("markdown-body");
-    if (t[0] === "latex-dark") document.body.classList.add("latex-dark");      // latex.css's own dark switch
-    var R = document.documentElement;
-    if (R.dataset.wcOrigTheme === undefined) R.dataset.wcOrigTheme = R.getAttribute("data-theme") || "";
-    if (t[0] === "pico-dark") R.setAttribute("data-theme", "dark");               // pico.css's dark switch
-    else if (R.dataset.wcOrigTheme) R.setAttribute("data-theme", R.dataset.wcOrigTheme); else R.removeAttribute("data-theme");
-    if (t[0] === "mvp-dark") document.documentElement.setAttribute("color-mode", "user"); // mvp.css's dark switch
-    else document.documentElement.removeAttribute("color-mode");
-    return t[0];
-  }
-  var cur = "tufte"; try { cur = localStorage.getItem(KEY) || "tufte"; } catch(e) {}
-  cur = apply(cur, true);
-  var box = document.createElement("div"); box.id = "wc-theme";
-  var sel = document.createElement("select"); sel.setAttribute("aria-label","Theme"); sel.title = "Theme (open-source stylesheets)";
-  T.forEach(function(t){ var o=document.createElement("option"); o.value=t[0]; o.textContent="Theme: "+t[1]; if(t[0]===cur) o.selected=true; sel.appendChild(o); });
-  sel.addEventListener("change", function(){ var k=apply(sel.value); try{localStorage.setItem(KEY,k);}catch(e){} });
-  box.appendChild(sel); document.body.appendChild(box);
-})();
-</script>
 <header class="rtools hl-ui" aria-label="Reading tools">
   <a class="rt" href="index.html" title="Book, slides, code and study kit">&larr; Library</a>
   <a class="rt" href="https://doi.org/10.1152/jn.00404.2019" target="_blank" rel="noopener" title="Chow &amp; Karimipanah (2020), the review">Review</a>
