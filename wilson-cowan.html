@@ -2831,7 +2831,7 @@ c-16-25.333-24-45-24-59z"/></svg></span></span></span></span><span class="vlist-
 </main>
 <script id="wc-theme-js" data-base="assets/themes/">
 (function(){
-  var T = [["classic", "Classic", false, "this book"], ["tufte", "Tufte", false, "edwardtufte/tufte-css"], ["latex", "LaTeX", false, "vincentdoerig/latex-css"], ["pico", "Pico", false, "picocss/pico"], ["water-light", "Water", false, "kognise/water.css"], ["water-dark", "Ink", true, "kognise/water.css"], ["simple", "Simple", false, "kevquirk/simple.css"], ["sakura", "Sakura", false, "oxalorg/sakura"], ["sakura-dark", "Dusk", true, "oxalorg/sakura"], ["sakura-earthly", "Moss", false, "oxalorg/sakura"], ["newcss", "Fresh", false, "xz/new.css"], ["mvp", "Bold", false, "andybrewer/mvp"], ["awsm", "Essay", false, "igoradamenko/awsm.css"], ["github-light", "GitHub", false, "sindresorhus/github-markdown-css"], ["github-dark", "GitHub Night", true, "sindresorhus/github-markdown-css"], ["bamboo", "Nord", false, "rilwis/bamboo"], ["bamboo-dark", "Nord Night", true, "rilwis/bamboo"], ["marx", "Plain", false, "mblode/marx"]], EXTRA = {"pico": "@media (min-width:1000px){body>main{max-width:900px;padding-left:2rem;padding-right:2rem}}", "github-light": "body.markdown-body{margin:0}body.markdown-body>main{box-sizing:border-box;max-width:980px;margin:0 auto;padding:45px}", "github-dark": "body.markdown-body{margin:0}body.markdown-body>main{box-sizing:border-box;max-width:980px;margin:0 auto;padding:45px}"}, KEY = "wc.theme";
+  var T = [["tufte", "Tufte", false, "edwardtufte/tufte-css"], ["tufte-dark", "Tufte Dark", true, "edwardtufte/tufte-css"], ["classic", "Classic", false, "this book"], ["latex", "LaTeX", false, "vincentdoerig/latex-css"], ["latex-dark", "LaTeX Dark", true, "vincentdoerig/latex-css"], ["pico", "Pico", false, "picocss/pico"], ["pico-dark", "Pico Dark", true, "picocss/pico"], ["water-light", "Water", false, "kognise/water.css"], ["water-dark", "Ink", true, "kognise/water.css"], ["simple", "Simple", false, "kevquirk/simple.css"], ["simple-dark", "Simple Dark", true, "kevquirk/simple.css"], ["sakura", "Sakura", false, "oxalorg/sakura"], ["sakura-dark", "Dusk", true, "oxalorg/sakura"], ["sakura-earthly", "Moss", false, "oxalorg/sakura"], ["newcss", "Fresh", false, "xz/new.css"], ["newcss-dark", "Fresh Dark", true, "xz/new.css"], ["mvp", "Bold", false, "andybrewer/mvp"], ["mvp-dark", "Bold Dark", true, "andybrewer/mvp"], ["awsm", "Essay", false, "igoradamenko/awsm.css"], ["github-light", "GitHub", false, "sindresorhus/github-markdown-css"], ["github-dark", "GitHub Night", true, "sindresorhus/github-markdown-css"], ["bamboo", "Nord", false, "rilwis/bamboo"], ["bamboo-dark", "Nord Night", true, "rilwis/bamboo"], ["marx", "Plain", false, "mblode/marx"]], EXTRA = {"pico": "@media (min-width:1000px){body>main{max-width:900px;padding-left:2rem;padding-right:2rem}}", "pico-dark": "@media (min-width:1000px){body>main{max-width:900px;padding-left:2rem;padding-right:2rem}}", "github-light": "body.markdown-body{margin:0}body.markdown-body>main{box-sizing:border-box;max-width:980px;margin:0 auto;padding:45px}", "github-dark": "body.markdown-body{margin:0}body.markdown-body>main{box-sizing:border-box;max-width:980px;margin:0 auto;padding:45px}"}, KEY = "wc.theme";
   var base = (document.currentScript && document.currentScript.getAttribute("data-base")) || "assets/themes/";
   function anchorEl(){            // the element at the top of the window, to keep the reading position
     if (location.hash && window.scrollY < 5) { var h = document.getElementById(location.hash.slice(1)); if (h) return h; }
@@ -2844,8 +2844,8 @@ c-16-25.333-24-45-24-59z"/></svg></span></span></span></span><span class="vlist-
     var own = document.getElementById("book-style");
     ["wc-ext","wc-compat","wc-extra"].forEach(function(id){var e=document.getElementById(id); if(e) e.remove();});
     document.documentElement.classList.remove("cx-dark");
-    document.body.classList.remove("markdown-body");
-    var t = T.filter(function(x){return x[0]===k;})[0] || T[0];
+    document.body.classList.remove("markdown-body"); document.body.classList.remove("latex-dark");
+    var t = T.filter(function(x){return x[0]===k;})[0] || T.filter(function(x){return x[0]==="tufte";})[0];
     if (t[0] === "classic") { if (own) own.disabled = false; restore(el); return t[0]; }
     if (own) own.disabled = true;
     var l = document.createElement("link"); l.rel="stylesheet"; l.id="wc-ext"; l.href=base+t[0]+".css"; l.onload=function(){ setTimeout(function(){ restore(el); }, 30); }; document.head.appendChild(l);
@@ -2853,9 +2853,16 @@ c-16-25.333-24-45-24-59z"/></svg></span></span></span></span><span class="vlist-
     if (EXTRA[t[0]]) { var s=document.createElement("style"); s.id="wc-extra"; s.textContent=EXTRA[t[0]]; document.head.appendChild(s); }
     if (t[2]) document.documentElement.classList.add("cx-dark");
     if (t[0].indexOf("github")===0) document.body.classList.add("markdown-body");
+    if (t[0] === "latex-dark") document.body.classList.add("latex-dark");      // latex.css's own dark switch
+    var R = document.documentElement;
+    if (R.dataset.wcOrigTheme === undefined) R.dataset.wcOrigTheme = R.getAttribute("data-theme") || "";
+    if (t[0] === "pico-dark") R.setAttribute("data-theme", "dark");               // pico.css's dark switch
+    else if (R.dataset.wcOrigTheme) R.setAttribute("data-theme", R.dataset.wcOrigTheme); else R.removeAttribute("data-theme");
+    if (t[0] === "mvp-dark") document.documentElement.setAttribute("color-mode", "user"); // mvp.css's dark switch
+    else document.documentElement.removeAttribute("color-mode");
     return t[0];
   }
-  var cur = "classic"; try { cur = localStorage.getItem(KEY) || "classic"; } catch(e) {}
+  var cur = "tufte"; try { cur = localStorage.getItem(KEY) || "tufte"; } catch(e) {}
   cur = apply(cur, true);
   var box = document.createElement("div"); box.id = "wc-theme";
   var sel = document.createElement("select"); sel.setAttribute("aria-label","Theme"); sel.title = "Theme (open-source stylesheets)";
