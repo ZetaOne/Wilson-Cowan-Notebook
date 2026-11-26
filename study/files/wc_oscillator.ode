@@ -1,0 +1,11 @@
+# Wilson-Cowan (1972) excitatory-inhibitory pair
+S(x,a,th)=1/(1+exp(-a*(x-th)))-1/(1+exp(a*th))
+ke=1-1/(1+exp(ae*the))
+ki=1-1/(1+exp(ai*thi))
+e'=(-e+(ke-re*e)*S(c1*e-c2*i+p,ae,the))/taue
+i'=(-i+(ki-ri*i)*S(c3*e-c4*i+q,ai,thi))/taui
+par c1=16,c2=12,c3=15,c4=3,ae=1.3,the=4,ai=2,thi=3.7,re=1,ri=1,p=1.25,q=0,taue=1,taui=1
+init e=0.1,i=0.05
+# Wilson & Cowan (1972) Fig. 11 parameters: a limit cycle
+@ meth=cvode,tol=1e-9,atol=1e-9,dt=0.02,total=100,maxstor=500000,bound=100000
+done

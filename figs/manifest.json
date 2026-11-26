@@ -1,0 +1,339 @@
+{
+ "ch01_coarse": {
+  "file": "ch01_coarse_still.png",
+  "gif": "ch01_coarse.gif",
+  "script": "ch01_figs.py",
+  "still": "ch01_coarse_still.png",
+  "wide": false
+ },
+ "ch01_fi": {
+  "file": "ch01_fi.svg",
+  "png": "ch01_fi.png",
+  "script": "ch01_figs.py",
+  "wide": false
+ },
+ "ch01_raster": {
+  "file": "ch01_raster.svg",
+  "png": "ch01_raster.png",
+  "script": "ch01_figs.py",
+  "wide": true
+ },
+ "ch02_cusp": {
+  "file": "ch02_cusp.svg",
+  "png": "ch02_cusp.png",
+  "script": "ch02_figs.py",
+  "wide": false
+ },
+ "ch02_graphical": {
+  "file": "ch02_graphical.svg",
+  "png": "ch02_graphical.png",
+  "script": "ch02_figs.py",
+  "wide": true
+ },
+ "ch02_hysteresis": {
+  "file": "ch02_hysteresis.svg",
+  "png": "ch02_hysteresis.png",
+  "script": "ch02_figs.py",
+  "wide": false
+ },
+ "ch02_slide": {
+  "file": "ch02_slide_still.png",
+  "gif": "ch02_slide.gif",
+  "script": "ch02_figs.py",
+  "still": "ch02_slide_still.png",
+  "wide": false
+ },
+ "ch02_switch": {
+  "file": "ch02_switch.svg",
+  "png": "ch02_switch.png",
+  "script": "ch02_figs.py",
+  "wide": true
+ },
+ "ch03_area": {
+  "file": "ch03_area_still.png",
+  "gif": "ch03_area.gif",
+  "script": "ch03_figs.py",
+  "still": "ch03_area_still.png",
+  "wide": false
+ },
+ "ch03_gain": {
+  "file": "ch03_gain.svg",
+  "png": "ch03_gain.png",
+  "script": "ch03_figs.py",
+  "wide": true
+ },
+ "ch03_refractory": {
+  "file": "ch03_refractory.svg",
+  "png": "ch03_refractory.png",
+  "script": "ch03_figs.py",
+  "wide": false
+ },
+ "ch03_thresholds": {
+  "file": "ch03_thresholds.svg",
+  "png": "ch03_thresholds.png",
+  "script": "ch03_figs.py",
+  "wide": true
+ },
+ "ch04_circuit": {
+  "file": "ch04_circuit.svg",
+  "png": "ch04_circuit.png",
+  "script": "ch04_figs.py",
+  "wide": false
+ },
+ "ch04_equiv": {
+  "file": "ch04_equiv.svg",
+  "png": "ch04_equiv.png",
+  "script": "ch04_figs.py",
+  "wide": true
+ },
+ "ch05_evoked": {
+  "file": "ch05_evoked.svg",
+  "png": "ch05_evoked.png",
+  "script": "ch05_figs.py",
+  "wide": true
+ },
+ "ch05_fig4": {
+  "file": "ch05_fig4.svg",
+  "png": "ch05_fig4.png",
+  "script": "ch05_figs.py",
+  "wide": false
+ },
+ "ch05_kicks": {
+  "file": "ch05_kicks_still.png",
+  "gif": "ch05_kicks.gif",
+  "script": "ch05_figs.py",
+  "still": "ch05_kicks_still.png",
+  "wide": false
+ },
+ "ch05_nullgeom": {
+  "file": "ch05_nullgeom.svg",
+  "png": "ch05_nullgeom.png",
+  "script": "ch05_figs.py",
+  "wide": true
+ },
+ "ch05_strength": {
+  "file": "ch05_strength.svg",
+  "png": "ch05_strength.png",
+  "script": "ch05_figs.py",
+  "wide": false
+ },
+ "ch06_auto": {
+  "file": "ch06_auto.svg",
+  "png": "ch06_auto.png",
+  "script": "ch06_figs.py",
+  "wide": true
+ },
+ "ch06_fig11": {
+  "file": "ch06_fig11.svg",
+  "png": "ch06_fig11.png",
+  "script": "ch06_figs.py",
+  "wide": true
+ },
+ "ch06_hopf": {
+  "file": "ch06_hopf_still.png",
+  "gif": "ch06_hopf.gif",
+  "script": "ch06_figs.py",
+  "still": "ch06_hopf_still.png",
+  "wide": false
+ },
+ "ch06_phase": {
+  "file": "ch06_phase.svg",
+  "png": "ch06_phase.png",
+  "script": "ch06_figs.py",
+  "wide": true
+ },
+ "ch07_fig5": {
+  "file": "ch07_fig5.svg",
+  "png": "ch07_fig5.png",
+  "script": "ch07_figs.py",
+  "wide": true
+ },
+ "ch07_fig67": {
+  "file": "ch07_fig67.svg",
+  "png": "ch07_fig67.png",
+  "script": "ch07_figs.py",
+  "wide": true
+ },
+ "ch07_nullslide": {
+  "file": "ch07_nullslide.svg",
+  "png": "ch07_nullslide.png",
+  "script": "ch07_figs.py",
+  "wide": true
+ },
+ "ch07_slidegif": {
+  "file": "ch07_slidegif_still.png",
+  "gif": "ch07_slidegif.gif",
+  "script": "ch07_figs.py",
+  "still": "ch07_slidegif_still.png",
+  "wide": false
+ },
+ "ch07_twopar": {
+  "file": "ch07_twopar.svg",
+  "png": "ch07_twopar.png",
+  "script": "ch07_figs.py",
+  "wide": false
+ },
+ "ch08_bump": {
+  "file": "ch08_bump.svg",
+  "png": "ch08_bump.png",
+  "script": "ch08_figs.py",
+  "wide": true
+ },
+ "ch08_bumpgif": {
+  "file": "ch08_bumpgif_still.png",
+  "gif": "ch08_bumpgif.gif",
+  "script": "ch08_figs.py",
+  "still": "ch08_bumpgif_still.png",
+  "wide": false
+ },
+ "ch08_front": {
+  "file": "ch08_front.svg",
+  "png": "ch08_front.png",
+  "script": "ch08_figs.py",
+  "wide": true
+ },
+ "ch08_kernel": {
+  "file": "ch08_kernel.svg",
+  "png": "ch08_kernel.png",
+  "script": "ch08_figs.py",
+  "wide": true
+ },
+ "ch08_pulse": {
+  "file": "ch08_pulse.svg",
+  "png": "ch08_pulse.png",
+  "script": "ch08_figs.py",
+  "wide": true
+ },
+ "ch09_2d": {
+  "file": "ch09_2d.svg",
+  "png": "ch09_2d.png",
+  "script": "ch09_figs.py",
+  "wide": true
+ },
+ "ch09_dispersion": {
+  "file": "ch09_dispersion.svg",
+  "png": "ch09_dispersion.png",
+  "script": "ch09_figs.py",
+  "wide": true
+ },
+ "ch09_logpolar": {
+  "file": "ch09_logpolar.svg",
+  "png": "ch09_logpolar.png",
+  "script": "ch09_figs.py",
+  "wide": true
+ },
+ "ch09_ring": {
+  "file": "ch09_ring.svg",
+  "png": "ch09_ring.png",
+  "script": "ch09_figs.py",
+  "wide": true
+ },
+ "ch10_beurle": {
+  "file": "ch10_beurle.svg",
+  "png": "ch10_beurle.png",
+  "script": "ch10_figs.py",
+  "wide": true
+ },
+ "ch10_griffith": {
+  "file": "ch10_griffith.svg",
+  "png": "ch10_griffith.png",
+  "script": "ch10_figs.py",
+  "wide": true
+ },
+ "ch10_mcp": {
+  "file": "ch10_mcp.svg",
+  "png": "ch10_mcp.png",
+  "script": "ch10_figs.py",
+  "wide": true
+ },
+ "ch10_timeline": {
+  "file": "ch10_timeline.svg",
+  "png": "ch10_timeline.png",
+  "script": "ch10_figs.py",
+  "wide": true
+ },
+ "ch11_asym": {
+  "file": "ch11_asym.svg",
+  "png": "ch11_asym.png",
+  "script": "ch11_figs.py",
+  "wide": true
+ },
+ "ch11_energy": {
+  "file": "ch11_energy.svg",
+  "png": "ch11_energy.png",
+  "script": "ch11_figs.py",
+  "wide": true
+ },
+ "ch11_hopfield": {
+  "file": "ch11_hopfield.svg",
+  "png": "ch11_hopfield.png",
+  "script": "ch11_figs.py",
+  "wide": true
+ },
+ "ch12_srm": {
+  "file": "ch12_srm.svg",
+  "png": "ch12_srm.png",
+  "script": "ch12_figs.py",
+  "wide": true
+ },
+ "ch12_transient": {
+  "file": "ch12_transient.svg",
+  "png": "ch12_transient.png",
+  "script": "ch12_figs.py",
+  "wide": true
+ },
+ "ch13_density": {
+  "file": "ch13_density.svg",
+  "png": "ch13_density.png",
+  "script": "ch13_figs.py",
+  "wide": true
+ },
+ "ch13_gain": {
+  "file": "ch13_gain.svg",
+  "png": "ch13_gain.png",
+  "script": "ch13_figs.py",
+  "wide": false
+ },
+ "ch13_mpr": {
+  "file": "ch13_mpr.svg",
+  "png": "ch13_mpr.png",
+  "script": "ch13_figs.py",
+  "wide": true
+ },
+ "ch14_finite": {
+  "file": "ch14_finite.svg",
+  "png": "ch14_finite.png",
+  "script": "ch14_figs.py",
+  "wide": true
+ },
+ "ch14_switch": {
+  "file": "ch14_switch.svg",
+  "png": "ch14_switch.png",
+  "script": "ch14_figs.py",
+  "wide": true
+ },
+ "ch15_diagrams": {
+  "file": "ch15_diagrams.svg",
+  "png": "ch15_diagrams.png",
+  "script": "ch15_figs.py",
+  "wide": true
+ },
+ "ch15_laplace": {
+  "file": "ch15_laplace.svg",
+  "png": "ch15_laplace.png",
+  "script": "ch15_figs.py",
+  "wide": true
+ },
+ "ch15_oneloop": {
+  "file": "ch15_oneloop.svg",
+  "png": "ch15_oneloop.png",
+  "script": "ch15_figs.py",
+  "wide": true
+ },
+ "ch16_family": {
+  "file": "ch16_family.svg",
+  "png": "ch16_family.png",
+  "script": "ch16_figs.py",
+  "wide": true
+ }
+}

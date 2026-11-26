@@ -1,0 +1,8 @@
+# Diffusion (Langevin) approximation of N stochastic two-state neurons, bistable (Chapter 14)
+f(x)=1/(1+exp(-b*(x-th)))
+wiener xi
+a'=-a+(1-a)*f(w*a+i0)+sqrt(max(a+(1-a)*f(w*a+i0),0)/nn)*xi
+par w=14,i0=0,b=1,th=4,nn=80
+init a=0.025
+@ meth=euler,dt=0.005,total=400,maxstor=200000,bound=100
+done

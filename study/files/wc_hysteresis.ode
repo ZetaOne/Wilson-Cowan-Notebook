@@ -1,0 +1,11 @@
+# Wilson-Cowan (1972) excitatory-inhibitory pair
+S(x,a,th)=1/(1+exp(-a*(x-th)))-1/(1+exp(a*th))
+ke=1-1/(1+exp(ae*the))
+ki=1-1/(1+exp(ai*thi))
+e'=(-e+(ke-re*e)*S(c1*e-c2*i+p,ae,the))/taue
+i'=(-i+(ki-ri*i)*S(c3*e-c4*i+q,ai,thi))/taui
+par c1=12,c2=4,c3=13,c4=11,ae=1.2,the=2.8,ai=1,thi=4,re=1,ri=1,p=0,q=0,taue=1,taui=1
+init e=0.1,i=0.05
+# Wilson & Cowan (1972) Fig. 4/5 parameters: three steady states, hysteresis in p
+@ meth=cvode,tol=1e-9,atol=1e-9,dt=0.02,total=100,maxstor=500000,bound=100000
+done
