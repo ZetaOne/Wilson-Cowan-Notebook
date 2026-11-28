@@ -10,7 +10,7 @@ C. C. Chow and Y. Karimipanah, *Before and beyond the Wilson&ndash;Cowan equatio
 
 - **The book**: 16 chapters and 3 appendices, from why populations and the sigmoid, through the E&ndash;I
   phase plane, oscillations, multistability, neural fields and patterns, to spiking mean fields,
-  finite-size effects and path integrals; in the browser (with 18 themes) or as a PDF.
+  finite-size effects and path integrals; in the browser or as a PDF.
 - **Slide decks**, one per chapter, geometry first; each remembers the slide you stopped at.
 - **The code** behind every figure, to read or download.
 - **A study kit**: XPP `.ode` files and executed notebooks.
@@ -24,7 +24,16 @@ models can also be explored in the browser with [XPPAUT-Web](https://zetaone.git
 
 ## About this repository
 
-The files here are generated: they are rebuilt from the book's sources, so changes go into those,
-not into these files. GitHub Pages publishes the `main` branch.
+The site files here are generated: they are rebuilt from the book's sources, so changes go into
+those, not into these files. GitHub Pages publishes the `main` branch.
+
+The sources are in [`source/wilson-cowan/`](source/wilson-cowan/), copied in on every build:
+
+- `book/`: the chapters (Markdown) and the book builder (`build.mjs`, `build_code.py`)
+- `figs/`: one script per figure; `wc_lib.py`, `figkit.py`: the shared model code and plot style
+- `decks/`: one slide-deck script per chapter (ManimGX through `sciviz`, the animation tools of
+  this project, which are not included here) and `render_all.sh`
+- `study/`: the XPP `.ode` files of the study kit and `make_notebooks.py`, which writes its notebooks
+- `site/`: this website's builder (`build.py`) and its page assets
 
 Made by Jeevan Kumar Gochhayat ([github.com/ZetaOne](https://github.com/ZetaOne)).

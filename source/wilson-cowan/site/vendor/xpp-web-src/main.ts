@@ -1,0 +1,2560 @@
+import './style.css'
+import { XppSession, xppBuild, type WindowImage } from './xpp'
+import { Terminal, type TerminalMode } from './terminal'
+import { download, makeZip } from './zip'
+import { CommandLibrary } from './cmdlib'
+import { MobileUI, detectDevice, watchDevice, type ViewMode } from './mobile'
+import { setupPwa } from './pwa'
+import { inApp, lockRotation, setupApp, shareFile } from './android'
+import { Loupe, SliderDrawer } from './touch'
+import { ENGINES, WebVoice, canRun, type RealEngine, type WebEngine } from './webvoice'
+import { COMMANDS as CATALOG } from './commands'
+import { snap, type FlowOption } from './voiceflow'
+import * as ws from './workspace'
+import { COMMANDS as VOICE_COMMANDS, helpFor, interpret, learnWords, matchPhrase, plainWords, setOfflineWords, setTaught, spokenForm, vocabulary, words, type Action, type Context } from './voicecmd'
+import { FONT_NAMES, PRESETS, chosenFont, fontArgs, fontKey, saveFont, type FontChoice } from './fonts'
+
+const app = document.querySelector<HTMLDivElement>('#app')!
+
+app.innerHTML = `
+  <header class="bar">
+    <strong class="brand"><img class="brand-icon" src="./icon-192.png" alt="" width="22" height="22">XPPAUT-Web</strong>
+    <button type="button" class="menubtn" id="menubtn" aria-label="Menu" aria-expanded="false">☰</button>
+    <div class="start" id="start">
+      <label>Example
+        <select id="example"><option>loading…</option></select>
+      </label>
+      <button id="run">Run</button>
+      <span class="sep">or</span>
+      <label class="file" title="Pick an .ode file, plus any files it uses (.ani, .tab, .dat, .set, .xps scripts)">Open .ode file…<input type="file" id="upload" multiple hidden></label>
+    </div>
+    <div class="session" id="session" hidden>
+      <label title="Switch to another example (restarts XPP)">Model
+        <select id="switch"></select>
+      </label>
+      <span id="status"></span>
+      <button id="edit" title="Edit the .ode file, then download it or restart XPP with it">Edit .ode</button>
+      <details class="files" id="files">
+        <summary>Files <span class="badge" id="fcount"></span></summary>
+        <div class="files-panel">
+          <div class="files-head">
+            <span>XPP's working folder</span>
+            <label class="file small" title="Add data, table, .ani, .set or .xps (script) files for XPP to open">Add files…<input type="file" id="addfiles" multiple hidden></label>
+            <button class="small" id="zipall">Download all (.zip)</button>
+            <button class="small" id="fnewscript" title="Write an XPPAUT script (.xps): commands that XPP carries out for you">New script</button>
+          </div>
+          <table id="filelist"></table>
+          <p class="files-note">Everything XPP saves (Graphic stuff → Postscript/SVG, data, .set files, AUTO diagrams) is also downloaded or saved to your folder, as chosen under <b>Exports</b>. ⤓ on any window's title bar saves it as PNG.</p>
+        </div>
+      </details>
+      <details class="files" id="scripts" hidden>
+        <summary title="XPPAUT scripts (.xps) in XPP's folder: run or edit them">Scripts <span class="badge" id="scount"></span></summary>
+        <div class="files-panel">
+          <div class="files-head">
+            <span>Scripts (.xps)</span>
+            <button class="small" id="scnew" title="Write a new script">New script</button>
+            <label class="file small" title="Add .xps script files to XPP's folder">Add scripts…<input type="file" id="addscripts" accept=".xps,.txt,text/plain" multiple hidden></label>
+            <a class="small" href="help/script_doc.html" target="_blank" rel="noopener" title="Bard Ermentrout's scripting manual">Manual</a>
+          </div>
+          <table id="scriptlist"></table>
+          <p class="files-note"><b>Run</b> starts the script as XPP's File → Do script would (F D in XPP, or in the Cmd panel). While it runs, <b>Esc</b> stops it; at a pause, <b>Enter</b> or <b>Space</b> goes on. What it saves appears under Files.</p>
+        </div>
+      </details>
+      <button type="button" class="micbtn" id="voicehdr" hidden aria-label="Voice commands" title="Voice: speak commands (tap again to stop)">🎤</button>
+      <button type="button" id="editorbtn" title="Open the editor in a new tab: XPP's files with tabs, previews (PostScript, SVG, PNG, data plots) and live checking of .ode files">Editor</button>
+      <details class="settings" id="settings">
+        <summary title="Exports, output and window options">Settings</summary>
+        <div class="settings-panel">
+          <label title="What happens when XPP saves a file (plots, data, .set, AUTO diagrams)">Exports
+            <select id="exportmode">
+              <option value="download">Download</option>
+              <option value="folder">Save to a folder…</option>
+              <option value="files">Keep in Files only</option>
+            </select>
+          </label>
+          <label title="XPP's terminal output (messages, errors, printed values)">Output
+            <select id="termmode">
+              <option value="hidden">Hidden</option>
+              <option value="side">Side panel</option>
+              <option value="window">Separate window</option>
+            </select>
+          </label>
+          <label title="Phone and tablet layout: detected automatically, or choose one">View
+            <select id="viewmode">
+              <option value="auto">Automatic</option>
+              <option value="mobile">Mobile (touch)</option>
+              <option value="desktop">Desktop</option>
+            </select>
+          </label>
+          <label class="touch-only" title="Keep the screen upright or sideways (in the app, or when installed)">Rotation
+            <select id="rotation">
+              <option value="auto">Automatic</option>
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </label>
+          <label class="check" title="Open XPP's new windows as separate browser windows (allow pop-ups for this site). Any window can also be popped out with ⧉ in its title bar.">
+            <input type="checkbox" id="separate"> Separate windows
+          </label>
+          <button type="button" id="cmdlibbtn" title="Every XPP command: run one, or choose what the Cmd panel shows (phones and tablets)">XPP commands…</button>
+          <label class="check" title="Flash the screen when XPP rings its bell (like File &gt; Bell on in XPP). Off by default.">
+            <input type="checkbox" id="bellflash"> Flash on bell
+          </label>
+          <div class="voiceset" id="voiceset">
+            <label title="Speak XPP's commands: tap 🎤, then say for example “integrate”, “nullclines”, “set i app to point one”">Voice
+              <select id="webvoiceengine">
+                <option value="" hidden>Not chosen yet</option>
+                <option value="off">Off</option>
+                <option value="browser">Browser speech (built in)</option>
+                <option value="vosk">Vosk (offline, ~44 MB)</option>
+                <option value="whisper">Whisper (offline, ~57 MB)</option>
+              </select>
+            </label>
+            <p class="voiceabout" id="voiceabout"></p>
+            <button type="button" class="small" id="voicedelete" hidden>Delete the download</button>
+            <div class="voiceteach" title="Say a command your way: the voice control learns what it hears then (kept in this browser)">
+              <span>Your own words</span>
+              <select id="teachcmd" aria-label="Command to teach"></select>
+              <button type="button" class="small" id="teachbtn">🎤 Teach</button>
+            </div>
+            <ul class="taught" id="taughtlist"></ul>
+            <button type="button" class="small" id="voicetourbtn">Voice tour</button>
+          </div>
+        </div>
+      </details>
+      <button id="savesession" title="Download a .zip with everything XPP saved, its graphs and AUTO diagram (SVG, PostScript), screenshots of the windows, the state (.set), the data and XPP's output">Save session</button>
+      <button id="restart">Restart</button>
+    </div>
+    <button type="button" class="install" id="install" hidden aria-label="Install as an app" title="Install XPPAUT-Web as an app: its own window and icon, and it works offline"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 3v11m0 0-4.5-4.5M12 14l4.5-4.5M5 15v4h14v-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Install</span></button>
+    <details class="fontsize" id="fontsize">
+      <summary class="round" title="XPP font size" aria-label="XPP font size">Aa</summary>
+      <div class="fontsize-panel" id="fontpanel">
+        <div class="fontsize-head">XPP font size</div>
+        <div id="fontpresets" role="radiogroup" aria-label="Font size"></div>
+        <label class="fontsize-custom"><input type="radio" name="fontpreset" value="custom"> Custom</label>
+        <div class="fontsize-pick" id="fontpick">
+          <label>Menus and buttons <select id="fontbig"></select></label>
+          <label>Small text <select id="fontsmall"></select></label>
+        </div>
+        <p class="fontsize-note" id="fontnote">XPP picks its fonts when it starts.</p>
+      </div>
+    </details>
+    <details class="themes" id="themes">
+      <summary class="round" title="Theme" aria-label="Theme">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>
+        </svg>
+      </summary>
+      <div class="themes-panel" id="themelist" role="menu"></div>
+    </details>
+  </header>
+  <div class="layout">
+    <main class="desktop" id="desktop">
+      <div class="hint" id="hint">
+        <p>Pick an example or open your own <code>.ode</code> file to start XPP.</p>
+        <p class="drophint">Or drop your <code>.ode</code> file here, together with any <code>.tab</code>, <code>.dat</code> or <code>.ani</code> files it uses (a folder works too).</p>
+        <div class="loadbar" id="loadbar" role="progressbar" aria-label="Loading XPP"><div id="loadfill"></div></div>
+        <p class="loadtext" id="loadtext">Loading XPP…</p>
+      </div>
+    </main>
+    <aside class="term" id="term" hidden>
+      <div class="term-head">
+        <span>XPP output</span>
+        <button class="small" id="termsave" title="Download the output as a text file">Save</button>
+        <button class="small" id="termclear">Clear</button>
+        <button class="xwin-btn" id="termclose" title="Hide">×</button>
+      </div>
+      <pre id="termpre"></pre>
+    </aside>
+  </div>
+  <dialog id="editor">
+    <form method="dialog" class="editor">
+      <div class="editor-head"><b id="edname"></b><span class="muted">Changes take effect when XPP restarts.</span></div>
+      <textarea id="edtext" spellcheck="false"></textarea>
+      <div class="editor-foot">
+        <button type="button" id="eddownload">Download</button>
+        <button type="button" id="edrestart">Restart XPP with this file</button>
+        <button value="cancel">Close</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="sceditor">
+    <form method="dialog" class="editor">
+      <div class="editor-head"><label>Script <input id="scname" size="24" spellcheck="false" autocomplete="off"></label><span class="muted">Saved in XPP's folder; runs without a restart.</span><a href="help/script_doc.html" target="_blank" rel="noopener">Manual</a></div>
+      <textarea id="sctext" spellcheck="false"></textarea>
+      <div class="editor-foot">
+        <span class="muted" id="scmsg"></span>
+        <button type="button" id="scdownload">Download</button>
+        <button type="button" id="scsave">Save</button>
+        <button type="button" id="scrun">Save and run</button>
+        <button value="cancel">Close</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="fontask">
+    <form method="dialog" class="leave">
+      <h3>Change XPP's font size?</h3>
+      <p id="fonttext"></p>
+      <div class="editor-foot">
+        <button value="cancel">Cancel</button>
+        <button value="later">At next start</button>
+        <button value="now" class="primary">Restart XPP now</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="needfiles">
+    <form method="dialog" class="leave">
+      <h3 id="needtitle"></h3>
+      <p id="needtext"></p>
+      <ul id="needlist"></ul>
+      <div class="editor-foot">
+        <button value="cancel">Cancel</button>
+        <button value="anyway">Start anyway</button>
+        <label class="file primary-file">Add files…<input type="file" id="needadd" multiple hidden></label>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="loadfail">
+    <form method="dialog" class="leave">
+      <h3 id="failtitle"></h3>
+      <p>XPP stopped while reading the model. Its messages:</p>
+      <pre id="failtext"></pre>
+      <p id="failhint"></p>
+      <div class="editor-foot">
+        <button value="ok" class="primary">OK</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="leave">
+    <form method="dialog" class="leave">
+      <h3 id="leavetitle">Save your session first?</h3>
+      <p id="leavetext"></p>
+      <div class="editor-foot">
+        <button value="cancel" id="leavecancel">Cancel</button>
+        <button value="discard" id="leavediscard">Continue without saving</button>
+        <button value="save" id="leavesave" class="primary">Save and continue</button>
+      </div>
+    </form>
+  </dialog>
+`
+
+const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
+const example = $<HTMLSelectElement>('example')
+const desktop = $<HTMLElement>('desktop')
+const termMode = $<HTMLSelectElement>('termmode')
+const separate = $<HTMLInputElement>('separate')
+const bellFlash = $<HTMLInputElement>('bellflash')
+
+let session: XppSession | null = null
+let odeName = ''
+let odeId = ''
+let statusText = ''
+
+const store = {
+  get(k: string): string | null {
+    try {
+      return localStorage.getItem(k)
+    } catch {
+      return null
+    }
+  },
+  set(k: string, v: string): void {
+    try {
+      localStorage.setItem(k, v)
+    } catch {
+      /* storage unavailable */
+    }
+  },
+}
+// Flash on bell: off by default (XPP's bell otherwise flashes the screen)
+bellFlash.checked = store.get('xpp-bellflash') === '1'
+bellFlash.addEventListener('change', () => {
+  store.set('xpp-bellflash', bellFlash.checked ? '1' : '0')
+  if (session) session.bellFlash = bellFlash.checked
+})
+
+// ---- terminal output ------------------------------------------------------
+const terminal = new Terminal($('term'), $<HTMLPreElement>('termpre'))
+terminal.onModeChange = (m) => {
+  termMode.value = m
+  store.set('xpp-terminal', m)
+}
+const savedMode = (store.get('xpp-terminal') as TerminalMode) || 'hidden'
+termMode.value = savedMode
+// a separate window can only be opened from a click; start in the side panel
+terminal.setMode(savedMode === 'window' ? 'side' : savedMode)
+termMode.addEventListener('change', () => {
+  const used = terminal.setMode(termMode.value as TerminalMode)
+  if (used !== termMode.value) notice('Pop-up blocked: output shown in the side panel (allow pop-ups for this site)')
+  termMode.value = used
+  store.set('xpp-terminal', used)
+})
+$('termclose').addEventListener('click', () => {
+  termMode.value = terminal.setMode('hidden')
+  store.set('xpp-terminal', 'hidden')
+})
+$('termclear').addEventListener('click', () => terminal.clear())
+$('termsave').addEventListener('click', () =>
+  download((odeName || 'xpp') + '-output.txt', new Blob([terminal.text()], { type: 'text/plain' })),
+)
+
+// Sing pts with "Print eigenvalues?" -> YES prints them as text, which
+// phones and tablets do not show (no output panel there): show them in a card
+let eigen: string[] | null = null
+let eigenTimer = 0
+function watchEigen(chunk: string) {
+  for (const line of chunk.split('\n')) {
+    if (/^\s*Eigenvalues:/.test(line)) {
+      eigen = []
+      continue
+    }
+    if (!eigen) continue
+    const m = line.match(/^\s*(-?[\d.]+(?:e[-+]?\d+)?)\s+\+\s+i\s+(-?[\d.]+(?:e[-+]?\d+)?)/i)
+    if (m) {
+      const [re, im] = [Number(m[1]), Number(m[2])]
+      eigen.push(im === 0 ? `${re}` : `${re} ${im < 0 ? '−' : '+'} ${Math.abs(im)} i`)
+      clearTimeout(eigenTimer)
+      eigenTimer = window.setTimeout(showEigen, 200)
+    } else if (line.trim()) showEigen()
+  }
+}
+function showEigen() {
+  const list = eigen
+  eigen = null
+  if (!list?.length || document.documentElement.dataset.device === 'desktop') return
+  document.querySelector('.eigen')?.remove()
+  const d = document.createElement('div')
+  d.className = 'eigen'
+  d.setAttribute('role', 'status')
+  d.innerHTML = '<b>Eigenvalues</b><button type="button" aria-label="Close">×</button><ol></ol>'
+  for (const e of list) d.querySelector('ol')!.append(Object.assign(document.createElement('li'), { textContent: e }))
+  d.querySelector('button')!.addEventListener('click', () => d.remove())
+  document.body.append(d)
+}
+
+function notice(msg: string) {
+  $('status').textContent = msg
+  $('status').title = msg
+  setTimeout(() => ($('status').textContent = statusText), 7000)
+  // phones and tablets: the status text is folded away, so show a toast too
+  if (document.documentElement.dataset.device && document.documentElement.dataset.device !== 'desktop') {
+    document.querySelector('.toast.notice')?.remove()
+    const t = document.createElement('div')
+    t.className = 'toast notice'
+    t.setAttribute('role', 'status')
+    t.textContent = msg
+    t.addEventListener('click', () => t.remove())
+    document.body.append(t)
+    setTimeout(() => t.remove(), 6000)
+  }
+}
+
+// ---- starting XPP -----------------------------------------------------------
+/** the workspace folder of the model XPP runs ("lecar"; see src/workspace.ts) */
+let wsDir = ''
+async function launch(name: string, text: string, extras: Array<{ name: string; data: Uint8Array }> = [], id = name, dir = ws.folderFor(name)) {
+  // the workspace (files kept in the browser, shared with the editor): the
+  // model's own folder there goes into XPP's folder too; a file edited there
+  // wins over an example's own copy (not the model itself)
+  wsDir = dir
+  for (const f of await ws.readAll()) {
+    if (ws.dirOf(f.name) !== dir) continue
+    const base = ws.baseOf(f.name)
+    if (base === name || f.data.length > 20_000_000 || /^fort\.\d+$/.test(base)) continue
+    extras = [...extras.filter((e) => e.name !== base), { name: base, data: f.data }]
+  }
+  void ws.touch(dir)
+  // your own model (examples bring their files): ask for table files it names
+  if (!id.includes('/')) {
+    const ok = await neededFiles(name, text, extras)
+    if (!ok) return
+    extras = ok
+  }
+  remember(id, name, text)
+  odeName = name
+  odeId = id
+  $('start').hidden = true
+  $('session').hidden = false
+  const sw = $('switch') as HTMLSelectElement
+  sw.value = id
+  if (sw.value !== id) sw.value = '' // not an example: "(your file)"
+  statusText = sw.value ? '' : name // the switcher already names examples
+  $('status').textContent = statusText
+  const q = new URLSearchParams(location.search)
+  q.set('ode', id) // keep other parameters (e.g. engine=asyncify for testing)
+  q.delete('ws')
+  history.replaceState(null, '', '?' + q.toString())
+  // the user's click that started XPP can open the output window
+  if (store.get('xpp-terminal') === 'window') termMode.value = terminal.setMode('window')
+  session = new XppSession(desktop, {
+    onOutput: (line) => {
+      terminal.write(line)
+      watchEigen(line)
+      outBuffer.push(line)
+    },
+    onNotice: notice,
+    onFileWritten: exported,
+    onExit: async (status) => {
+      statusText = `${name}: XPP has quit`
+      $('status').textContent = statusText
+      // quit before showing a window: it could not read the model; say why
+      if (!session?.shown) {
+        await loadFailed(name, text)
+        backToStart()
+        return
+      }
+      // one question, then back to the start screen (pick another model)
+      if (unsaved) {
+        if ((await askToSave('quit')) === 'save') {
+          await saveSession()
+          await new Promise((r) => setTimeout(r, 800)) // let the download start
+        } else {
+          try {
+            localStorage.removeItem(AUTOSAVE) // declined: nothing to restore later
+          } catch {
+            /* storage blocked */
+          }
+        }
+      }
+      unsaved = false
+      backToStart()
+      void status
+    },
+  })
+  session.popOutNew = separate.checked
+  session.bellFlash = bellFlash.checked
+  mobile.attach(session)
+  ;(window as unknown as { xpp: XppSession }).xpp = session // for tests and debugging
+  updateScriptCount()
+  syncToWorkspace()
+  setInterval(() => (updateFileCount(), updateScriptCount(), syncToWorkspace()), 2000)
+  // XPP's WebAssembly started downloading when the page opened; wait for it
+  let wasm: ArrayBuffer | undefined
+  try {
+    wasm = await wasmReady
+  } catch {
+    wasm = undefined // fall back to a plain download inside start()
+  }
+  $('loadtext').textContent = 'Starting XPP…'
+  startedFont = chosenFont()
+  // ?script=fig.xps: run that XPPAUT script (one of the files brought along) once XPP is up
+  const script = new URLSearchParams(location.search).get('script')
+  const scriptArgs = script && extras.some((f) => f.name === script) ? ['-script', script] : []
+  await session.start(name, text, extras, wasm, [...fontArgs(startedFont), ...scriptArgs])
+  showFont()
+  $('hint')?.remove()
+}
+
+// ---- download XPP as soon as the page opens, with a progress bar -------------
+const build = xppBuild()
+const wasmReady: Promise<ArrayBuffer> = (async () => {
+  const fill = $('loadfill')
+  const label = $('loadtext')
+  const mb = (n: number) => (n / 1048576).toFixed(n < 1048576 ? 2 : 1) + ' MB'
+  void fetch(build.dir + 'xppaut.mjs') // warm the cache for the loader script
+  let total = 0
+  try {
+    total = (await (await fetch('wasm/sizes.json')).json())[build.engine] || 0
+  } catch {
+    /* no size: indeterminate */
+  }
+  const res = await fetch(build.dir + 'xppaut.wasm')
+  if (!res.ok || !res.body) throw new Error('cannot download XPP')
+  const reader = res.body.getReader()
+  const chunks: Uint8Array[] = []
+  let got = 0
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    chunks.push(value)
+    got += value.length
+    const f = total ? Math.min(1, got / total) : 0
+    fill.style.width = (total ? f * 100 : 30 + ((got / 50000) % 60)) + '%'
+    if (total) document.getElementById('loadbar')?.setAttribute('aria-valuenow', String(Math.round(f * 100)))
+    label.textContent = total ? `Loading XPP… ${mb(got)} of ${mb(total)}` : `Loading XPP… ${mb(got)}`
+  }
+  const buf = new Uint8Array(got)
+  let off = 0
+  for (const c of chunks) {
+    buf.set(c, off)
+    off += c.length
+  }
+  fill.style.width = '100%'
+  label.textContent = 'XPP is ready.'
+  setTimeout(() => document.getElementById('loadbar')?.classList.add('done'), 300) // may be gone already
+  return buf.buffer
+})()
+wasmReady.catch(() => {
+  $('loadtext').textContent = 'Could not download XPP. Check your connection and reload.'
+})
+
+interface ExampleGroup {
+  id: string
+  label: string
+  odes: string[]
+  data: string[]
+}
+let groups: ExampleGroup[] = []
+
+/** "ode/lecar.ode" -> group and file name; a bare name means the main folder */
+function splitId(id: string): [ExampleGroup | undefined, string] {
+  let [g, n] = id.includes('/') ? [id.slice(0, id.indexOf('/')), id.slice(id.indexOf('/') + 1)] : ['ode', id]
+  if (g === 'xpp84') g = 'bard-renew' // the script examples' earlier group (old links)
+  const group = groups.find((x) => x.id === g)
+  return [group?.odes.includes(n) ? group : undefined, n]
+}
+
+async function loadExample(id: string) {
+  const [group, name] = splitId(id)
+  if (!group) throw new Error(`no example ${id}`)
+  const dir = 'odes/' + group.id + '/'
+  const res = await fetch(dir + encodeURIComponent(name))
+  if (!res.ok) throw new Error(`cannot load ${id}`)
+  const text = await res.text()
+  // bring along the data files the example uses: any bundled .ani/.tab/.dat
+  // named in it, and the .ani of the same name (pend.ode + pend.ani)
+  const wanted = new Set([name.replace(/\.ode$/, '.ani')])
+  for (const m of text.matchAll(/[\w.+-]+\.(?:ani|tab|dat)\b/gi)) wanted.add(m[0])
+  // XPPAUT 8.4 scripts (File -> Do script): those of this model, foo-*.xps for foo.ode
+  const base = name.replace(/\.ode$/i, '')
+  for (const f of group.data) if (/\.xps$/i.test(f) && (f === base + '.xps' || f.startsWith(base + '-'))) wanted.add(f)
+  const extras: Array<{ name: string; data: Uint8Array }> = []
+  for (const f of wanted) {
+    if (!group.data.includes(f)) continue
+    const r = await fetch(dir + encodeURIComponent(f))
+    if (r.ok) extras.push({ name: f, data: new Uint8Array(await r.arrayBuffer()) })
+  }
+  await launch(name, text, extras, group.id + '/' + name)
+}
+
+function exampleOptions(): string {
+  const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  return groups
+    .map(
+      (g) =>
+        `<optgroup label="${esc(g.label)} (${g.odes.length})">` +
+        g.odes.map((n) => `<option value="${esc(g.id + '/' + n)}">${esc(n)}</option>`).join('') +
+        '</optgroup>',
+    )
+    .join('')
+}
+
+fetch('odes/index.json')
+  .then((r) => r.json())
+  .then((index: ExampleGroup[]) => {
+    groups = index
+    example.innerHTML = exampleOptions()
+    ;($('switch') as HTMLSelectElement).innerHTML = '<option value="">(your file)</option>' + exampleOptions()
+    example.value = 'ode/lecar.ode'
+    // XPP may already be running a file opened before the index arrived
+    // (e.g. "Open with" in the app): do not replace it with an example
+    if (session) return
+    const q = new URLSearchParams(location.search)
+    const want = q.get('ode')
+    const fromWs = q.get('ws')
+    const edited = restoreEdited(want)
+    if (fromWs) {
+      // the editor's "Run in XPP": a model from the workspace
+      const base = ws.baseOf(fromWs)
+      void ws.read(fromWs).then((d) => {
+        if (d) launch(base, ws.textOf(d), [], base, ws.dirOf(fromWs) || ws.folderFor(base))
+        else notice(`${fromWs} is not in the workspace`)
+      })
+    } else if (edited) launch(edited.name, edited.text, edited.extras, edited.id)
+    else if (want && splitId(want)[0]) {
+      example.value = splitId(want)[0]!.id + '/' + splitId(want)[1]
+      loadExample(want)
+    }
+  })
+
+$('run').addEventListener('click', () => loadExample(example.value))
+/** start XPP with the .ode among `files`; the others go into its working folder */
+async function openFiles(files: File[]) {
+  const ode = files.find((f) => /\.ode$/i.test(f.name)) ?? files[0]
+  if (!ode) return
+  const extras = await Promise.all(
+    files.filter((f) => f !== ode).map(async (f) => ({ name: f.name, data: new Uint8Array(await f.arrayBuffer()) })),
+  )
+  await launch(ode.name, await ode.text(), extras)
+}
+$<HTMLInputElement>('upload').addEventListener('change', (e) => {
+  void openFiles([...((e.target as HTMLInputElement).files ?? [])])
+})
+
+// ---- drag and drop: on the start screen it opens the model (like Open .ode
+// file…), while XPP runs it adds the files to XPP's folder (like Add files…).
+// Dropped folders are read through, files only (XPP looks in its own folder).
+async function droppedFiles(dt: DataTransfer): Promise<File[]> {
+  const entries = [...dt.items].map((i) => i.webkitGetAsEntry?.()).filter((e): e is FileSystemEntry => !!e)
+  if (!entries.length) return [...dt.files]
+  const out: File[] = []
+  const walk = async (e: FileSystemEntry): Promise<void> => {
+    if (e.isFile) {
+      out.push(await new Promise<File>((res, rej) => (e as FileSystemFileEntry).file(res, rej)))
+    } else if (e.isDirectory) {
+      const reader = (e as FileSystemDirectoryEntry).createReader()
+      for (;;) {
+        const batch = await new Promise<FileSystemEntry[]>((res, rej) => reader.readEntries(res, rej))
+        if (!batch.length) break
+        for (const c of batch) await walk(c)
+      }
+    }
+  }
+  for (const e of entries) await walk(e)
+  return out
+}
+{
+  const area = $('desktop')
+  const hasFiles = (e: DragEvent) => !!e.dataTransfer?.types.includes('Files')
+  let depth = 0
+  const done = () => {
+    depth = 0
+    area.classList.remove('dropping')
+  }
+  area.addEventListener('dragenter', (e) => {
+    if (!hasFiles(e)) return
+    e.preventDefault()
+    depth++
+    area.classList.add('dropping')
+  })
+  area.addEventListener('dragover', (e) => {
+    if (!hasFiles(e)) return
+    e.preventDefault()
+    e.dataTransfer!.dropEffect = 'copy'
+  })
+  area.addEventListener('dragleave', () => {
+    if (--depth <= 0) done()
+  })
+  area.addEventListener('drop', async (e) => {
+    if (!hasFiles(e)) return
+    e.preventDefault()
+    done()
+    const files = (await droppedFiles(e.dataTransfer!)).filter((f) => !f.name.startsWith('.') || f.name === '.xpprc')
+    if (!files.length) return
+    if (session?.running) {
+      for (const f of files) session.writeFile(f.name, new Uint8Array(await f.arrayBuffer()))
+      renderFiles()
+      updateFileCount()
+      notice(`Added to XPP's folder (Files): ${files.map((f) => f.name).join(', ')}`)
+    } else if (!files.some((f) => /\.ode$/i.test(f.name))) {
+      notice('Drop an .ode file (with the files it uses) to start XPP.')
+    } else await openFiles(files)
+  })
+  // a file dropped next to the drop area must not make the browser open it
+  for (const t of ['dragover', 'drop']) window.addEventListener(t, (e) => hasFiles(e as DragEvent) && e.preventDefault())
+}
+// Android app: files opened with XPPAUT from other apps start XPP like Open .ode file…
+setupApp(
+  () => session ?? undefined,
+  (files) => {
+    const input = $<HTMLInputElement>('upload')
+    const dt = new DataTransfer()
+    for (const f of files) dt.items.add(f)
+    input.files = dt.files
+    input.dispatchEvent(new Event('change'))
+  },
+  () => { leaving = true },
+)
+$('restart').addEventListener('click', () => leaveThen(() => location.reload()))
+$('switch').addEventListener('change', () => {
+  const sw = $('switch') as HTMLSelectElement
+  const v = sw.value
+  if (!v) return
+  leaveThen(
+    () => {
+      const q = new URLSearchParams(location.search)
+      q.set('ode', v)
+      location.search = '?' + q.toString() // XPP restarts with the new model
+    },
+    () => (sw.value = odeId), // cancelled
+  )
+})
+
+separate.checked = store.get('xpp-separate') === '1'
+separate.addEventListener('change', () => {
+  if (session) session.popOutNew = separate.checked
+  store.set('xpp-separate', separate.checked ? '1' : '0')
+})
+
+// ---- exports: files XPP writes are downloaded or saved to a chosen folder ----
+type ExportMode = 'download' | 'folder' | 'files'
+interface DirHandle {
+  name: string
+  getFileHandle(n: string, o: { create: boolean }): Promise<{ createWritable(): Promise<{ write(d: BlobPart): Promise<void>; close(): Promise<void> }> }>
+}
+const exportSelect = $<HTMLSelectElement>('exportmode')
+const canPickFolder = 'showDirectoryPicker' in window
+let exportMode: ExportMode = 'download'
+let exportDir: DirHandle | null = null
+if (!canPickFolder) {
+  const opt = exportSelect.querySelector('option[value="folder"]') as HTMLOptionElement
+  opt.disabled = true
+  opt.textContent = 'Save to a folder… (Chrome/Edge only)'
+}
+{
+  const saved = store.get('xpp-exports')
+  if (saved === 'files' || saved === 'download') exportMode = saved
+  exportSelect.value = exportMode // a folder has to be picked again after reloading
+}
+exportSelect.addEventListener('change', async () => {
+  const want = exportSelect.value as ExportMode
+  if (want === 'folder') {
+    try {
+      const pick = (window as unknown as { showDirectoryPicker(o: object): Promise<DirHandle> }).showDirectoryPicker
+      exportDir = await pick({ mode: 'readwrite', id: 'xpp-exports' })
+      exportMode = 'folder'
+      notice(`XPP will save files in the folder "${exportDir.name}"`)
+    } catch {
+      exportSelect.value = exportMode // cancelled: keep the previous choice
+    }
+    return
+  }
+  exportMode = want
+  store.set('xpp-exports', want)
+})
+
+const pendingExports = new Map<string, ReturnType<typeof setTimeout>>()
+function exported(path: string) {
+  const name = path.slice(path.lastIndexOf('/') + 1)
+  if (path.startsWith('/work/')) setTimeout(syncToWorkspace, 300)
+  // AUTO's scratch files (fort.3, fort.7, ...) and its working results
+  // (<model>.b/.d/.s, appended to on every run) are not exports
+  if (/^fort\.\d+$/.test(name) || [odeName + '.b', odeName + '.d', odeName + '.s'].includes(name)) return
+  // the figures and state Save session asks XPP for (xw_export_session)
+  if (path.startsWith('/xw-session')) return
+  // XPP sometimes reopens a file to append; deliver once it settles
+  clearTimeout(pendingExports.get(path))
+  pendingExports.set(path, setTimeout(() => deliverExport(path), 250))
+  if (!path.startsWith('/work/')) savedElsewhere.add(path)
+}
+
+/** where XPP saved it, if not its working folder (shown in the notice) */
+function folderNote(path: string): string {
+  const dir = path.slice(0, path.lastIndexOf('/')) || '/'
+  return dir === '/work' ? '' : ` (XPP saved it in ${dir})`
+}
+
+async function deliverExport(path: string) {
+  pendingExports.delete(path)
+  updateFileCount()
+  const name = path.slice(path.lastIndexOf('/') + 1)
+  if (!session || exportMode === 'files') {
+    notice(folderNote(path) ? `Saved ${name} in XPP's ${path.slice(0, path.lastIndexOf('/'))}` : `Saved ${name} (see Files)`)
+    return
+  }
+  let data: Uint8Array
+  try {
+    data = session.readFile(path)
+  } catch {
+    return // removed again (temporary file)
+  }
+  if (exportMode === 'folder' && exportDir) {
+    try {
+      const fh = await exportDir.getFileHandle(name, { create: true })
+      const w = await fh.createWritable()
+      await w.write(data as BlobPart)
+      await w.close()
+      notice(`Saved ${name} in "${exportDir.name}"${folderNote(path)}`)
+      return
+    } catch {
+      notice(`Could not write to "${exportDir.name}"; downloading ${name} instead`)
+    }
+  }
+  download(name, data)
+  notice(`Downloaded ${name}${folderNote(path)}`)
+}
+
+// ---- files ------------------------------------------------------------------
+function formatSize(n: number): string {
+  return n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`
+}
+
+function updateFileCount() {
+  const n = session?.listFiles().length ?? 0
+  $('fcount').textContent = n ? String(n) : ''
+}
+
+function renderFiles() {
+  const table = $<HTMLTableElement>('filelist')
+  const files = session?.listFiles() ?? []
+  table.innerHTML = files.length ? '' : '<tr><td class="muted">No files yet</td></tr>'
+  for (const f of files) {
+    const tr = document.createElement('tr')
+    const name = document.createElement('td')
+    const a = document.createElement('a')
+    a.href = '#'
+    a.textContent = f.name
+    a.title = 'Download'
+    a.addEventListener('click', (ev) => {
+      ev.preventDefault()
+      download(f.name, session!.readFile(f.name))
+    })
+    name.append(a)
+    const edit = document.createElement('button')
+    edit.type = 'button'
+    edit.className = 'small fedit'
+    edit.textContent = 'Edit'
+    edit.title = 'Open in the editor'
+    edit.addEventListener('click', () => openEditor(f.name))
+    name.append(' ', edit)
+    const size = document.createElement('td')
+    size.className = 'num'
+    size.textContent = formatSize(f.size)
+    const time = document.createElement('td')
+    time.className = 'muted'
+    time.textContent = new Date(f.mtime).toLocaleTimeString()
+    tr.append(name, size, time)
+    table.append(tr)
+  }
+}
+
+$('files').addEventListener('toggle', () => {
+  if (($('files') as HTMLDetailsElement).open) renderFiles()
+})
+$('zipall').addEventListener('click', () => {
+  if (!session) return
+  const files = session.listFiles().map((f) => ({ name: f.name, data: session!.readFile(f.name) }))
+  if (files.length) download(odeName.replace(/\.ode$/, '') + '-files.zip', makeZip(files))
+})
+$<HTMLInputElement>('addfiles').addEventListener('change', async (e) => {
+  const input = e.target as HTMLInputElement
+  for (const f of input.files ?? []) session?.writeFile(f.name, new Uint8Array(await f.arrayBuffer()))
+  input.value = ''
+  renderFiles()
+  updateFileCount()
+})
+
+// ---- scripts (XPPAUT 8.4, .xps): a menu on the page, as XPP's own file
+// selector is small (above all on phones), and an editor -------------------------
+const isScript = (n: string) => /\.xps$/i.test(n)
+function updateScriptCount() {
+  const n = session?.listFiles().filter((f) => isScript(f.name)).length ?? 0
+  $('scount').textContent = n ? String(n) : ''
+  // the Scripts menu (and Scripts… in the Cmd panel) only when there are scripts
+  $('scripts').hidden = n === 0
+  mobile.setScripts(n > 0)
+}
+function runScript(name: string) {
+  if (!session) return
+  ;($('scripts') as HTMLDetailsElement).open = false
+  document.querySelector('header')!.classList.remove('menu-open')
+  $('menubtn').setAttribute('aria-expanded', 'false')
+  session.runScript(name)
+}
+function renderScripts() {
+  const table = $<HTMLTableElement>('scriptlist')
+  const files = (session?.listFiles() ?? []).filter((f) => isScript(f.name))
+  table.innerHTML = files.length ? '' : '<tr><td class="muted">No scripts yet: New script, or Add scripts…</td></tr>'
+  for (const f of files) {
+    const tr = document.createElement('tr')
+    const name = document.createElement('td')
+    name.textContent = f.name
+    const acts = document.createElement('td')
+    acts.className = 'num'
+    const run = document.createElement('button')
+    run.className = 'small'
+    run.textContent = 'Run'
+    run.title = 'Run it (File -> Do script)'
+    run.addEventListener('click', () => runScript(f.name))
+    const edit = document.createElement('button')
+    edit.className = 'small'
+    edit.textContent = 'Edit'
+    edit.addEventListener('click', () => openScriptEditor(f.name))
+    acts.append(run, ' ', edit)
+    tr.append(name, acts)
+    table.append(tr)
+  }
+}
+$('scripts').addEventListener('toggle', () => {
+  if (($('scripts') as HTMLDetailsElement).open) renderScripts()
+})
+$<HTMLInputElement>('addscripts').addEventListener('change', async (e) => {
+  const input = e.target as HTMLInputElement
+  for (const f of input.files ?? []) {
+    const name = isScript(f.name) ? f.name : f.name.replace(/\.[^.]*$/, '') + '.xps'
+    session?.writeFile(name, new Uint8Array(await f.arrayBuffer()))
+  }
+  input.value = ''
+  renderScripts()
+  updateScriptCount()
+  updateFileCount()
+})
+const scEditor = $<HTMLDialogElement>('sceditor')
+const NEW_SCRIPT = `# A script: one command per line (manual: Manual, above)
+#   set a=1;b=2      parameters, initial conditions, numerics, plot options
+#   keys i g         XPP's menu keys (here Initialconds -> Go)
+#   ans 16           the answer to the dialog the line above opens
+#   msg "text"       a message;  pause "text"  waits for Enter
+#   shot fig.ps      save the picture (.ps or .svg)
+#   for a in 1 2 3 ... end,  try ... else ... end,  auto goto HB 1, ...
+keys i g
+`
+function openScriptEditor(name: string | null) {
+  if (!session) return
+  ;($('scripts') as HTMLDetailsElement).open = false
+  document.querySelector('header')!.classList.remove('menu-open')
+  const base = odeName.replace(/\.ode$/i, '')
+  let n = name
+  if (!n) {
+    n = base + '-new.xps'
+    for (let k = 2; session.listFiles().some((f) => f.name === n); k++) n = `${base}-new${k}.xps`
+  }
+  $<HTMLInputElement>('scname').value = n
+  $<HTMLTextAreaElement>('sctext').value = name ? new TextDecoder().decode(session.readFile(name)) : NEW_SCRIPT
+  $('scmsg').textContent = ''
+  scEditor.showModal()
+}
+/** save the editor's script into XPP's folder; returns its name, or null */
+function saveScript(): string | null {
+  if (!session) return null
+  let n = $<HTMLInputElement>('scname').value.trim().replace(/[\\/]/g, '_')
+  if (!n) n = 'script.xps'
+  if (!isScript(n)) n += '.xps'
+  $<HTMLInputElement>('scname').value = n
+  session.writeFile(n, new TextEncoder().encode($<HTMLTextAreaElement>('sctext').value))
+  $('scmsg').textContent = 'Saved ' + n
+  updateScriptCount()
+  updateFileCount()
+  return n
+}
+$('scnew').addEventListener('click', () => openScriptEditor(null))
+$('fnewscript').addEventListener('click', () => {
+  ;($('files') as HTMLDetailsElement).open = false
+  openScriptEditor(null)
+})
+$('scsave').addEventListener('click', () => void saveScript())
+$('scrun').addEventListener('click', () => {
+  const n = saveScript()
+  if (!n) return
+  scEditor.close()
+  runScript(n)
+})
+$('scdownload').addEventListener('click', () => {
+  const n = saveScript()
+  if (n) download(n, new Blob([$<HTMLTextAreaElement>('sctext').value], { type: 'text/plain' }))
+})
+// ---- the workspace (src/workspace.ts) and the editor (editor.html) ---------------
+/** what the workspace has of each of XPP's files ("size:mtime") */
+const wsSeen = new Map<string, string>()
+let wsBusy = false
+/** XPP's folder -> the workspace: new and changed files */
+async function syncToWorkspace() {
+  if (!session || wsBusy || !wsDir) return
+  wsBusy = true
+  try {
+    for (const f of session.listFiles()) {
+      const key = f.size + ':' + f.mtime
+      const path = ws.join(wsDir, f.name)
+      if (wsSeen.get(path) === key) continue
+      if (/^fort\.\d+$/.test(f.name) || f.size > 20_000_000) continue
+      wsSeen.set(path, key)
+      await ws.write(path, session.readFile(f.name))
+    }
+  } finally {
+    wsBusy = false
+  }
+}
+const seenNow = (name: string) => {
+  const f = session?.listFiles().find((x) => x.name === name)
+  if (f) wsSeen.set(ws.join(wsDir, name), f.size + ':' + f.mtime)
+}
+// XPP's output and the running script line, to the editor windows
+const outBuffer: string[] = []
+let lastScript = ''
+setInterval(() => {
+  if (outBuffer.length) ws.post({ t: 'out', lines: outBuffer.splice(0, outBuffer.length) })
+  if (!session) return
+  const sl = session.scriptLine()
+  const key = sl.line ? ws.join(wsDir, sl.name) + ':' + sl.line : ''
+  if (key !== lastScript) {
+    ws.post({ t: 'script-line', name: sl.line ? ws.join(wsDir, sl.name) : lastScript.replace(/:\d+$/, ''), line: sl.line })
+    lastScript = key
+  }
+}, 150)
+// the editor's sliders: one move at a time, when XPP is free
+const sliderPending = new Map<number, number>()
+setInterval(() => {
+  if (!session || session.busy) return
+  for (const [k, v] of sliderPending) {
+    sliderPending.delete(k)
+    session.moveSlider(k, v)
+    return
+  }
+}, 120)
+const paramsReply = () =>
+  session && ws.post({ t: 'params', list: session.params(), sliders: [0, 1, 2].map((k) => session!.sliderInfo(k)) })
+ws.onMessage(async (m) => {
+  if (m.t === 'hello') return ws.post({ t: 'xpp-here', ode: odeName, dir: wsDir })
+  if (session && m.t === 'cmd') {
+    if (m.to === 'auto') {
+      const w = session.windows().find((x) => x.title.startsWith("It's AUTO"))
+      if (!w) return notice('The AUTO window is not open')
+      session.activate(w.id)
+    } else session.activate(session.mainWindow)
+    for (const k of m.keys) session.pressKey(k)
+    return
+  }
+  if (session && m.t === 'params-req') return void paramsReply()
+  if (session && m.t === 'slider-setup') {
+    const ok = await session.setupSlider(m.k, m.name, m.lo, m.hi, m.value)
+    ws.post({ t: 'slider-ok', k: m.k, ok })
+    return
+  }
+  if (session && m.t === 'slider-move') return void sliderPending.set(m.k, m.value)
+  if (!session) {
+    // no XPP running here: the editor asks to run a model -> start it
+    if (m.t === 'run-ode') location.href = wsUrl(m.name, m.script)
+    return
+  }
+  // only files in the folder of the model XPP runs belong in XPP's folder
+  const mine = 'name' in m && ws.dirOf(m.name) === wsDir
+  const base = 'name' in m ? ws.baseOf(m.name) : ''
+  if (m.t === 'changed') {
+    if (!mine || !base) return
+    const d = await ws.read(m.name)
+    if (d) {
+      session.writeFile(base, d)
+      seenNow(base)
+      renderFiles()
+      updateFileCount()
+      updateScriptCount()
+    }
+  } else if (m.t === 'deleted') {
+    if (!mine) return
+    session.removeFile(base)
+    wsSeen.delete(m.name)
+    updateFileCount()
+    updateScriptCount()
+  } else if (m.t === 'run-script') {
+    const d = await ws.read(m.name)
+    if (d) session.writeFile(base, d)
+    seenNow(base) // (a script from another folder stays out of this one)
+    session.runScript(base)
+    notice('Running ' + base)
+  } else if (m.t === 'run-ode') {
+    // the edited model, with the workspace's files: a fresh start
+    leaveThen(() => (location.href = wsUrl(m.name, m.script)))
+  }
+})
+/** XPP's page started on a model of the workspace ("folder/x.ode"), and a script */
+function wsUrl(path: string, script?: string) {
+  return location.pathname + '?ws=' + encodeURIComponent(path) + (script ? '&script=' + encodeURIComponent(script) : '')
+}
+/** open the editor in its own tab (on `name`, if given) */
+function openEditor(name?: string) {
+  void syncToWorkspace().then(() => {
+    const w = window.open('editor.html' + (name && wsDir ? '#' + encodeURIComponent(ws.join(wsDir, name)) : ''), 'xpp-editor')
+    if (!w) notice('Allow pop-ups for this site to open the editor in a new tab')
+  })
+}
+$('editorbtn').addEventListener('click', () => openEditor())
+// the Android app: no browser tabs (the editor comes to the app later)
+if (inApp) $('editorbtn').hidden = true
+
+// ---- .ode editor --------------------------------------------------------------
+const editor = $<HTMLDialogElement>('editor')
+$('edit').addEventListener('click', () => {
+  if (!session) return
+  $('edname').textContent = odeName
+  $<HTMLTextAreaElement>('edtext').value = new TextDecoder().decode(session.readFile(odeName))
+  editor.showModal()
+})
+$('eddownload').addEventListener('click', () =>
+  download(odeName, new Blob([$<HTMLTextAreaElement>('edtext').value], { type: 'text/plain' })),
+)
+$('edrestart').addEventListener('click', () => {
+  editor.close()
+  leaveThen(restartEdited)
+})
+
+function restartEdited() {
+  restartWith($<HTMLTextAreaElement>('edtext').value)
+}
+
+/** restart XPP with this model text and the other files in its working folder */
+function restartWith(text: string) {
+  // XPP cannot reload in place; restart the page with the edited file and the
+  // other files in the working folder
+  const extras = (session?.listFiles() ?? [])
+    .filter((f) => f.name !== odeName && f.size < 2_000_000)
+    .map((f) => ({ name: f.name, data: toBase64(session!.readFile(f.name)) }))
+  try {
+    sessionStorage.setItem('xpp-edited', JSON.stringify({ id: odeId, name: odeName, text, extras }))
+  } catch {
+    sessionStorage.setItem('xpp-edited', JSON.stringify({ id: odeId, name: odeName, text, extras: [] }))
+  }
+  location.reload()
+}
+
+function toBase64(data: Uint8Array): string {
+  let s = ''
+  for (let i = 0; i < data.length; i += 0x8000) s += String.fromCharCode(...data.subarray(i, i + 0x8000))
+  return btoa(s)
+}
+
+function restoreEdited(name: string | null) {
+  try {
+    const raw = sessionStorage.getItem('xpp-edited')
+    if (!raw) return null
+    sessionStorage.removeItem('xpp-edited')
+    const d = JSON.parse(raw)
+    if (!name || (d.id || d.name) !== name) return null
+    const extras = (d.extras || []).map((f: { name: string; data: string }) => ({
+      name: f.name,
+      data: Uint8Array.from(atob(f.data), (c) => c.charCodeAt(0)),
+    }))
+    return { id: (d.id || d.name) as string, name: d.name as string, text: d.text as string, extras }
+  } catch {
+    return null
+  }
+}
+
+window.addEventListener('pagehide', () => terminal.closeAll())
+
+// ---- auto-save: when the page is hidden (app in the background, tab
+// switched, phone locked) keep the model, XPP's files and the current
+// parameter and initial values, so they can be restored if the browser or
+// Android closes the page. Offered on the start screen next time.
+const AUTOSAVE = 'xpp-autosave'
+interface AutoSave {
+  id: string
+  name: string
+  text: string
+  extras: Array<{ name: string; data: string }>
+  values: Array<{ name: string; value: number; ic: boolean }>
+  time: number
+}
+function autoSave() {
+  if (!session?.running || !unsaved || leaving) return // leaving: the user chose to go
+  try {
+    let size = 0
+    const extras = session.listFiles()
+      .filter((f) => f.name !== odeName && !/^fort\.\d+$/.test(f.name) && (size += f.size) < 2_000_000)
+      .map((f) => ({ name: f.name, data: toBase64(session!.readFile(f.name)) }))
+    const snap: AutoSave = {
+      id: odeId, name: odeName, text: new TextDecoder().decode(session.readFile(odeName)),
+      extras, values: session.params(), time: Date.now(),
+    }
+    localStorage.setItem(AUTOSAVE, JSON.stringify(snap))
+  } catch { /* storage full or blocked: nothing to restore */ }
+}
+document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && autoSave())
+window.addEventListener('pagehide', autoSave)
+
+function offerRestore() {
+  let snap: AutoSave | null = null
+  try {
+    snap = JSON.parse(localStorage.getItem(AUTOSAVE) || 'null')
+  } catch { /* none */ }
+  if (!snap || Date.now() - snap.time > 30 * 86400_000 || new URLSearchParams(location.search).has('ode')) return
+  const bar = document.createElement('div')
+  bar.className = 'restore'
+  const when = new Date(snap.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+  bar.innerHTML = `<span>Your last session: <b></b> <small></small></span>
+    <button type="button" class="restore-go">Restore</button>
+    <button type="button" class="restore-no" aria-label="Forget it">×</button>`
+  bar.querySelector('b')!.textContent = snap.name
+  bar.querySelector('small')!.textContent = when
+  const forget = () => {
+    bar.remove()
+    try { localStorage.removeItem(AUTOSAVE) } catch { /* ignore */ }
+  }
+  bar.querySelector('.restore-no')!.addEventListener('click', forget)
+  bar.querySelector('.restore-go')!.addEventListener('click', async () => {
+    const s = snap!
+    forget()
+    await launch(s.name, s.text, s.extras.map((f) => ({ name: f.name, data: Uint8Array.from(atob(f.data), (c) => c.charCodeAt(0)) })), s.id)
+    // once XPP is up, put the values back
+    const t = setInterval(() => {
+      if (!session?.running || session.busy || !session.windows().length) return
+      clearInterval(t)
+      for (const v of s.values) session.setValue(v.name, v.value, v.ic)
+      notice('Restored ' + s.name + ': files and parameter/initial values')
+    }, 300)
+  })
+  $('hint').prepend(bar)
+}
+offerRestore()
+
+// ---- recent models (start screen): examples by name, your own files with
+// their text (not their data files)
+const RECENT = 'xpp-recent'
+interface Recent {
+  id: string
+  name: string
+  text?: string
+  time: number
+}
+function recents(): Recent[] {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT) || '[]')
+  } catch {
+    return []
+  }
+}
+function remember(id: string, name: string, text: string) {
+  const example = id.includes('/') && !!splitId(id)[0] // your own files have bare names
+  if (!example && text.length > 200_000) return // too large to keep
+  const entry: Recent = example ? { id, name, time: Date.now() } : { id, name, text, time: Date.now() }
+  try {
+    localStorage.setItem(RECENT, JSON.stringify([entry, ...recents().filter((r) => r.id !== id)].slice(0, 8)))
+  } catch { /* storage full or blocked */ }
+}
+function showRecent() {
+  const list = recents()
+  if (!list.length) return
+  const box = document.createElement('div')
+  box.className = 'recent'
+  box.innerHTML = '<span>Recent:</span>'
+  for (const r of list) {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.textContent = r.name
+    b.title = r.text
+      ? `Your file, opened ${new Date(r.time).toLocaleString()} (its data files are not kept)`
+      : 'Example ' + r.id
+    b.addEventListener('click', () => (r.text ? launch(r.name, r.text, [], r.id) : loadExample(r.id)))
+    box.append(b)
+  }
+  const forget = document.createElement('button')
+  forget.type = 'button'
+  forget.className = 'recent-clear'
+  forget.textContent = 'Clear'
+  forget.title = 'Forget this list'
+  forget.addEventListener('click', () => {
+    box.remove()
+    try { localStorage.removeItem(RECENT) } catch { /* ignore */ }
+  })
+  box.append(forget)
+  $('hint').insertBefore(box, $('hint').querySelector('p'))
+}
+showRecent()
+
+// ---- phones and tablets ---------------------------------------------------------
+const viewSelect = $<HTMLSelectElement>('viewmode')
+let viewMode = (store.get('xpp-view') as ViewMode) || 'auto'
+viewSelect.value = viewMode
+const mobile = new MobileUI(app, desktop)
+mobile.tip = notice
+// touch helpers: a loupe with XPP's coordinates, large sliders, sharing
+const loupe = new Loupe(desktop, () => session)
+loupe.enabled = () => mobile.device !== 'desktop'
+const sliders = new SliderDrawer(desktop, () => session, notice)
+const cmdlib = new CommandLibrary(mobile, notice)
+$('cmdlibbtn').addEventListener('click', () => {
+  ;($('settings') as HTMLDetailsElement).open = false
+  cmdlib.open()
+})
+mobile.addFeature('sliders', 'Sliders', 'parameters', () => sliders.toggle())
+// "Scripts… = @scripts" in the Cmd panel opens the page's Scripts menu
+mobile.addFeature('scripts', 'Scripts…', 'run a script', () => {
+  renderScripts()
+  // on phones the toolbar (with Scripts) is folded into the ☰ menu: open it
+  if (getComputedStyle($('menubtn')).display !== 'none') {
+    document.querySelector('header')!.classList.add('menu-open')
+    $('menubtn').setAttribute('aria-expanded', 'true')
+  }
+  ;($('scripts') as HTMLDetailsElement).open = true
+})
+mobile.addFeature('share-graph', 'Share graph', 'picture', () => {
+  const main = session?.windowImages().find((w) => /^XPP Ver/.test(w.title))
+  if (!main) return notice('No graph to share')
+  main.canvas.toBlob((b) => b && void shareFile(baseName() + '.png', b, download), 'image/png')
+})
+mobile.addFeature('share-data', 'Data (CSV)', 'save', async () => {
+  // written in XPP's folder: delivered like XPP's own exports (Settings -> Exports)
+  const rows = await session!.writeCsv('/work/' + baseName() + '.csv')
+  if (rows <= 0) notice('No data yet: integrate first')
+})
+mobile.addFeature('share-ode', 'Share .ode', 'model', () => {
+  void shareFile(odeName, new Blob([session!.readFile(odeName) as BlobPart], { type: 'text/plain' }), download)
+})
+mobile.featuresDone()
+if (mobile.listWasReset) setTimeout(() => notice('Your Cmd panel could not be read, so it is back to the default.'), 1500)
+function baseName() {
+  return (odeName || 'xpp').replace(/\.ode$/i, '')
+}
+// ---- voice commands (the website; the Android app has its own engine) ---------
+// 🎤 in the zoom bar (phones, tablets) or the header (computers, when chosen).
+// Settings -> Voice picks the engine: the browser's own recognition, or Vosk or
+// Whisper running in the page (offline, downloaded once). What is heard is
+// matched by src/voicecmd.ts: the same commands as in the Android app.
+let voiceShown = () => {}
+// the Android app has its own engine and its own Settings -> Voice
+if (inApp) $('voiceset').hidden = true
+if (!inApp) {
+  const voice = new WebVoice(desktop)
+  voice.notice = notice
+  const context = (): Context => {
+    const active = session?.windows().find((w) => w.active)
+    return active?.title.startsWith("It's AUTO") ? 'auto' : 'xpp'
+  }
+  const names = () => (session ? session.params().map((p) => p.name) : [])
+  // the Cmd panel's commands by voice: their labels (and the model's @ BUT= buttons)
+  const spoken = () => [...mobile.shortcuts(), ...mobile.modelButtons()].map((c) => ({ c, phrases: [c.label] }))
+  // Vosk hears only words it knows: its word list (for spoken forms of the rest)
+  let offline: Promise<void> | null = null
+  const offlineWords = () =>
+    (offline ??= fetch('voice/vosk-words.txt')
+      .then((r) => (r.ok ? r.text() : ''))
+      .then((t) => setOfflineWords(new Set(t.split('\n'))))
+      .catch(() => {}))
+  /** the scripts in XPP's folder, by the words of their names ("hh-auto.xps":
+   *  "hh auto", and "auto" without the model's name) */
+  const scriptItems = () => {
+    const base = odeName.replace(/\.ode$/i, '').toLowerCase()
+    return (session?.listFiles() ?? [])
+      .filter((f) => /\.xps$/i.test(f.name))
+      .map((f) => {
+        const all = f.name.replace(/\.xps$/i, '').replace(/[-_.]+/g, ' ').toLowerCase()
+        const short = all.startsWith(base + ' ') ? all.slice(base.length + 1) : all
+        return { file: f.name, phrases: [...new Set([all, short].map((p) => words(p).join(' ')))] }
+      })
+  }
+  /** the script whose name sounds most like `said` (letter pairs in common),
+   *  when it is clearly the best */
+  const closestScript = (said: string, list: Array<{ file: string; phrases: string[] }>) => {
+    const pairs = (t: string) => {
+      const x = t.replace(/[^a-z0-9]/g, '')
+      return new Set(Array.from({ length: Math.max(0, x.length - 1) }, (_, i) => x.slice(i, i + 2)))
+    }
+    const a = pairs(said)
+    const score = (p: string) => {
+      const b = pairs(p)
+      let n = 0
+      for (const x of a) if (b.has(x)) n++
+      return a.size + b.size ? (2 * n) / (a.size + b.size) : 0
+    }
+    const ranked = list.map((x) => ({ x, s: Math.max(...x.phrases.map(score)) })).sort((p, q) => q.s - p.s)
+    return ranked[0] && ranked[0].s >= 0.4 && (!ranked[1] || ranked[0].s - ranked[1].s >= 0.1) ? ranked[0].x : null
+  }
+  voice.grammarFor = () => {
+    const f = flow(context())
+    if (f.hard) return [...f.options.flatMap((o) => o.phrases.join(' ').split(' ')), ...UNIVERSAL.flatMap((u) => u.split(' '))].filter(Boolean)
+    const mine = spoken().flatMap((s) => s.phrases)
+    const scripts = scriptItems().flatMap((x) => x.phrases)
+    learnWords([...mine, ...scripts])
+    return [
+      ...vocabulary(context(), names()),
+      ...[...mine, ...scripts].flatMap((p) => plainWords(p).split(' ')).flatMap((w) => (spokenForm(w) ?? w).split(' ')).filter(Boolean),
+      'run', 'start', 'play', 'the', 'script',
+      ...taughtList.flatMap((t) => t.heard.split(' ')),
+      // a name's first letter and the rest ("i app" for iapp, "g k" for gk)
+      ...names().flatMap((n) => (n.length > 2 ? [n[0].toLowerCase(), n.slice(1).toLowerCase()] : [])),
+    ]
+  }
+  const recent = new Map<string, number>()
+  // ---- XPP's menus by name: "file" opens the File menu, "file auto" or
+  // "file script" picks from it, and after "file" just "auto" does
+  const SYNONYMS: Record<string, string[]> = {
+    'initial conditions': ['initialconds', 'initial condition', 'initial', 'ics menu'],
+    'direction field': ['dir field', 'direction fields', 'flow'],
+    'window/zoom': ['window', 'window zoom', 'zoom menu'],
+    'phase space': ['phasespace'],
+    graphics: ['graphic stuff', 'graphic', 'graphics stuff'],
+    'sing pts': ['sing points', 'singular points', 'singular point'],
+    'view axes': ['viewaxes', 'axes'],
+    'text, markers': ['text', 'text etc', 'markers'],
+    'boundary value': ['boundary', 'bndry value', 'boundary values'],
+    'freeze curves': ['freeze menu', 'graphics freeze', 'graphic stuff freeze'],
+    'auto file': ['file'],
+    'auto axes': ['axes'],
+    'auto run (from the start)': ['run'],
+  }
+  type Menu = { name: string; say: string[]; keys: string[]; to?: 'auto'; items: Array<{ c: (typeof CATALOG)[number]; phrases: string[] }> }
+  const menus: Menu[] = (() => {
+    const out = new Map<string, Menu>()
+    for (const c of CATALOG) {
+      const k = c.keys.split(' ')
+      if (k.length < 2 && !c.to) continue
+      const prefix = (c.to === 'auto' && k.length === 1 ? [] : k.slice(0, -1))
+      if (!prefix.length) continue
+      const id = (c.to ?? '') + prefix.join(' ')
+      const g = c.group.toLowerCase()
+      const m = out.get(id) ?? { name: c.group, say: [...new Set([g, ...(SYNONYMS[g] ?? [])])].map((x) => words(x).join(' ')), keys: prefix, to: c.to, items: [] }
+      const label = c.label.replace(/[*…]/g, '').toLowerCase()
+      const short = label.replace(/^(do|run|draw|show|make|set|edit|save|load|delete|remove)\s+/, '')
+      m.items.push({ c, phrases: [...new Set([label, short].map((x) => words(x).join(' ')))].filter(Boolean) })
+      out.set(id, m)
+    }
+    const list = [...out.values()]
+    // AUTO's Run menu at a grabbed point has more (Hopf: Periodic, Extend, New
+    // Point, Two Param; period doubling: Doubling): the same keys work there
+    const run = list.find((m) => m.to === 'auto' && m.keys.join(' ') === 'r')
+    if (run)
+      for (const [k, label] of [['t', 'Two parameter'], ['e', 'Extend'], ['n', 'New point'], ['d', 'Doubling'], ['f', 'Fixed period']])
+        run.items.push({ c: { label, keys: 'r ' + k, group: run.name, to: 'auto' }, phrases: [words(label.toLowerCase()).join(' ')] })
+    return list
+  })()
+  const menusFor = (ctx: Context) => menus.filter((m) => (ctx === 'auto') === (m.to === 'auto'))
+  /** the menu left open by "file" (its next item may be said alone) */
+  let openMenu: { m: Menu; at: number } | null = null
+  /** "file", "file auto", "graphic stuff freeze": the keys, or null */
+  const menuPath = (text: string, ctx: Context): { keys: string[]; label: string; to?: 'auto'; open?: Menu } | null => {
+    const t = words(text).join(' ')
+    for (const m of menusFor(ctx).sort((a, b) => b.keys.length - a.keys.length)) {
+      for (const name of m.say) {
+        if (t === name) return { keys: m.keys, label: m.name + ' menu', to: m.to, open: m }
+        if (!t.startsWith(name + ' ')) continue
+        const rest = t.slice(name.length + 1)
+        const hit = matchPhrase([rest], m.items, false) ?? matchPhrase([rest], m.items, true)
+        if (hit) return { keys: hit.c.keys.split(' '), label: `${m.name} → ${hit.c.label}`, to: m.to }
+      }
+    }
+    return null
+  }
+  /** press menu keys in XPP's main window (or AUTO's) */
+  const pressMenu = (keys: string[], to?: 'auto'): string | void => {
+    const s = session
+    if (!s) return 'XPP is not running'
+    if (to === 'auto') {
+      const w = s.windows().find((w) => w.title.startsWith("It's AUTO"))
+      if (!w) return 'The AUTO window is not open (say “auto”)'
+      s.activate(w.id)
+    } else s.activate(s.mainWindow)
+    for (const k of keys) s.pressKey(k)
+    afterKeys(keys, to)
+  }
+  // ---- expected next commands (src/voiceflow.ts): after a command only a few
+  // things make sense; what is heard is snapped to them, they are shown as
+  // suggestions, and Vosk listens for them only inside a menu or Grab
+  let grabbing = 0
+  /** after keys went to XPP: a menu now open, Grab mode on or off */
+  const afterKeys = (keys: string[], to?: 'auto') => {
+    const full = keys.join(' ')
+    if (to === 'auto' && full === 'g') grabbing = performance.now()
+    else if (keys.includes('Enter') || keys.includes('Escape')) grabbing = 0
+    const m = menus.find((x) => (x.to === 'auto') === (to === 'auto') && x.keys.join(' ') === full)
+    if (m) openMenu = { m, at: performance.now() }
+    voice.refreshGrammar()
+    voice.refreshHints()
+  }
+  type Option = FlowOption & { say: string }
+  /** commands that work at every step (and leave a menu or Grab) */
+  const UNIVERSAL = ['escape', 'cancel', 'back', 'enter', 'okay', 'yes', 'no', 'tab', 'stop listening', 'what can i say', 'help', 'xpp window', 'main window']
+  const fromVoice = (ctxName: Context, labels?: string[]): Option[] =>
+    VOICE_COMMANDS.filter((c) => c.ctx.includes(ctxName) && (!labels || labels.includes(c.label)))
+      .map((c) => ({ label: c.label, phrases: c.say.filter((x) => !x.includes('{')), say: c.say.find((x) => !x.includes('{')) ?? '' }))
+      .filter((o) => o.say && !UNIVERSAL.includes(o.say))
+  /** what may come next: the options, whether only they count (a menu,
+   *  Grab), and how close a guess must be */
+  const flow = (ctx: Context): { name: string; options: Option[]; hard: boolean; min: number } => {
+    const now = performance.now()
+    const pk = picker()
+    if (pk) return { name: 'the file picker', options: pk.files.map((f) => fileOption(f, 'pick file ' + f)), hard: true, min: 0.45 }
+    if (($('scripts') as HTMLDetailsElement).open)
+      return { name: 'Scripts', options: scriptItems().map((x) => ({ label: x.file, phrases: [...new Set([...x.phrases, ...fileOption(x.file, '').phrases])], say: 'run script ' + x.phrases[0] })), hard: true, min: 0.45 }
+    if (($('files') as HTMLDetailsElement).open)
+      return { name: 'Files', options: (session?.listFiles() ?? []).map((f) => fileOption(f.name, 'download file ' + f.name)), hard: true, min: 0.45 }
+    if (openMenu && now - openMenu.at < 20000)
+      return { name: openMenu.m.name, options: openMenu.m.items.map((i) => ({ label: i.c.label.replace(/\*$/, ''), phrases: i.phrases, say: i.phrases[0] })), hard: true, min: 0.5 }
+    if (ctx === 'auto' && grabbing && now - grabbing < 120000)
+      return { name: 'Grab', options: fromVoice('auto', ['Point ▶', '◀ Point', 'Next label', 'Grab it']), hard: true, min: 0.5 }
+    if (ctx === 'auto') {
+      // AUTO's own buttons first (for the suggestions)
+      const first = ['Run', 'Grab', 'Parameter', 'Axes', 'Numerics', 'File', 'Run steady state', 'Run periodic', 'Two parameter', 'Clear', 'reDraw', 'Usr period', 'XPP window']
+      const opts = fromVoice('auto').sort((a, b) => (first.indexOf(a.label) + 1 || 99) - (first.indexOf(b.label) + 1 || 99))
+      return { name: 'AUTO', options: opts, hard: false, min: 0.55 }
+    }
+    // XPP's window: the Cmd panel's buttons first, then every command and menu
+    const mine = spoken().map((x) => ({ label: x.c.label, phrases: [plainWords(x.c.label)], say: x.c.label }))
+    const menuNames = menusFor('xpp').filter((m) => m.keys.length === 1).map((m) => ({ label: m.name, phrases: m.say, say: m.say[0] }))
+    const page = pageCommands().map((c) => ({ label: c.label, phrases: c.phrases, say: c.phrases[0] }))
+    return { name: 'XPP', options: [...mine, ...fromVoice('xpp'), ...menuNames, ...page], hard: false, min: 0.62 }
+  }
+  voice.hintsFor = () => {
+    const f = flow(context())
+    const seen = new Set<string>()
+    return f.options.filter((o) => !seen.has(o.label) && seen.add(o.label)).slice(0, 6).map((o) => o.label)
+  }
+  // ---- the page by voice: settings, files, themes, windows, examples -------
+  type PageCmd = { label: string; phrases: string[]; run: () => string | void }
+  const onPhone = () => getComputedStyle($('menubtn')).display !== 'none'
+  /** open a header panel (Settings, Files, Scripts); on phones inside ☰ */
+  const openPanel = (id: string, open = true) => {
+    const d = $(id) as HTMLDetailsElement
+    if (open && onPhone()) {
+      document.querySelector('header')!.classList.add('menu-open')
+      $('menubtn').setAttribute('aria-expanded', 'true')
+    }
+    d.open = open
+    if (open && id === 'files') renderFiles()
+    if (open && id === 'scripts') renderScripts()
+  }
+  const closePanels = () => {
+    for (const id of ['settings', 'files', 'scripts', 'fontsize', 'themes']) {
+      const d = document.getElementById(id) as HTMLDetailsElement | null
+      if (d) d.open = false
+    }
+    document.querySelector('header')!.classList.remove('menu-open')
+    $('menubtn').setAttribute('aria-expanded', 'false')
+  }
+  const setCheck = (id: string, on: boolean) => {
+    const c = $<HTMLInputElement>(id)
+    c.checked = on
+    c.dispatchEvent(new Event('change'))
+  }
+  const setSelect = (id: string, v: string) => {
+    const c = $<HTMLSelectElement>(id)
+    c.value = v
+    c.dispatchEvent(new Event('change'))
+  }
+  const tabs = () => (session?.windows() ?? [])
+  const stepWindow = (d: number) => {
+    const w = tabs()
+    if (w.length < 2) return 'Only one window is open'
+    const i = Math.max(0, w.findIndex((x) => x.active))
+    const next = w[(i + d + w.length) % w.length]
+    session!.activate(next.id)
+    return '✓ ' + next.title
+  }
+  const pageCommands = (): PageCmd[] => {
+    const out: PageCmd[] = [
+      { label: 'Settings', phrases: ['settings', 'open settings', 'show settings', 'preferences'], run: () => openPanel('settings') },
+      { label: 'Files', phrases: ['files', 'show files', 'open files', 'my files'], run: () => openPanel('files') },
+      { label: 'Close menu', phrases: ['close menu', 'close settings', 'close files', 'close panel', 'close scripts'], run: () => closePanels() },
+      { label: 'Save session', phrases: ['save session', 'save the session', 'save everything'], run: () => $('savesession').click() },
+      { label: 'Restart', phrases: ['restart', 'restart xpp', 'start again'], run: () => $('restart').click() },
+      { label: 'Next window', phrases: ['next window', 'switch window', 'other window', 'change window'], run: () => stepWindow(1) },
+      { label: 'Previous window', phrases: ['previous window', 'last window', 'window back'], run: () => stepWindow(-1) },
+      { label: 'Flash on bell on', phrases: ['bell on', 'flash on bell', 'flash on bell on', 'bell flash on'], run: () => setCheck('bellflash', true) },
+      { label: 'Flash on bell off', phrases: ['bell off', 'flash on bell off', 'no bell flash', 'bell flash off'], run: () => setCheck('bellflash', false) },
+      { label: 'Show output', phrases: ['show output', 'show terminal', 'terminal', 'output panel'], run: () => setSelect('termmode', onPhone() ? 'window' : 'side') },
+      { label: 'Hide output', phrases: ['hide output', 'hide terminal', 'close terminal'], run: () => setSelect('termmode', 'hidden') },
+      { label: 'Cmd panel', phrases: ['cmd panel', 'command panel', 'commands panel', 'open cmd', 'cmd'], run: () => void mobile.toggleCommands() },
+      { label: 'Font size', phrases: ['font size', 'font', 'text size', 'bigger font', 'smaller font'], run: () => openPanel('fontsize') },
+      { label: 'Themes', phrases: ['themes', 'theme', 'colors', 'colours', 'change theme'], run: () => openPanel('themes') },
+      { label: 'Voice tour', phrases: ['voice tour', 'tour', 'voice help', 'how does voice work'], run: () => voiceTour() },
+      { label: 'Editor', phrases: ['editor', 'open editor', 'open the editor', 'code editor'], run: () => openEditor() },
+      { label: 'Dark mode', phrases: ['dark mode', 'dark theme', 'go dark'], run: () => clickTheme('Dark') },
+      { label: 'Light mode', phrases: ['light mode', 'light theme', 'go light'], run: () => clickTheme('Light') },
+    ]
+    // every theme by name: "theme nord", "nord theme"
+    for (const b of document.querySelectorAll<HTMLButtonElement>('#themelist button')) {
+      const name = (b.textContent ?? '').trim()
+      const plain = words(name.replace(/\(.*\)/, '').toLowerCase()).join(' ')
+      if (plain) out.push({ label: 'Theme ' + name, phrases: ['theme ' + plain, plain + ' theme'], run: () => clickTheme(name) })
+    }
+    // every window by its title: "show auto", "auto window"
+    for (const w of tabs()) {
+      const t = words(w.title.replace(/^XPP Ver [\d.]+ >> /, '').replace(/[.]ode$/, '').toLowerCase()).join(' ')
+      if (t) out.push({ label: 'Window ' + w.title, phrases: ['show ' + t, t + ' window', 'go to ' + t], run: () => (session!.activate(w.id), '✓ ' + w.title) })
+    }
+    return out
+  }
+  const clickTheme = (name: string) => {
+    const b = [...document.querySelectorAll<HTMLButtonElement>('#themelist button')].find((x) => (x.textContent ?? '').trim().toLowerCase().startsWith(name.toLowerCase()))
+    if (!b) return `No theme “${name}”`
+    b.click()
+    return '✓ Theme ' + (b.textContent ?? '').trim()
+  }
+  /** "load lecar", "open model hh": an example by name */
+  const loadByName = (said: string): string | null => {
+    const m = said.match(/^(?:load|open|switch to|open model|load model|model)\s+(.+)$/)
+    if (!m) return null
+    const items = groups.flatMap((g) => g.odes.map((o) => ({ label: o, phrases: [words(o.replace(/\.ode$/, '').replace(/[-_]/g, ' ')).join(' ')], id: g.id + '/' + o })))
+    const hit = matchPhrase([m[1]], items, false) ?? snap([m[1]], items, 0.6)?.o
+    if (!hit) return `No example called “${m[1]}”`
+    setSelect('switch', hit.id)
+    return '✓ Loading ' + hit.label
+  }
+  // ---- files by voice: XPP's own file picker, the Scripts and Files panels
+  /** XPP's file selector (title "*.xps - /work"), when it is the active window */
+  const picker = () => {
+    const w = session?.windows().find((x) => x.active && /^\S+ - \//.test(x.title))
+    if (!w) return null
+    const [glob, dir] = w.title.split(' - ')
+    if (dir.replace(/\/$/, '') !== '/work') return { w, files: [] as string[] }
+    const re = new RegExp('^' + glob.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.') + '$', 'i')
+    return { w, files: (session?.listFiles() ?? []).map((f) => f.name).filter((n) => re.test(n)) }
+  }
+  const fileOption = (name: string, say: string): Option => {
+    const base = odeName.replace(/\.ode$/i, '').toLowerCase()
+    const stem = name.replace(/\.[^.]+$/, '').replace(/[-_.]+/g, ' ').toLowerCase()
+    const short = stem.startsWith(base + ' ') ? stem.slice(base.length + 1) : stem
+    return { label: name, phrases: [...new Set([stem, short, name.replace(/[-_.]+/g, ' ').toLowerCase()].map((x) => words(x).join(' ')))], say }
+  }
+  // ---- the first-time voice tour (Next / Skip), again from Settings -> Voice
+  const TOUR = [
+    ['Voice commands', 'Tap 🎤 and speak. The bar at the bottom shows what was heard and what was done; tap 🎤 or Stop to end.'],
+    ['Say XPP’s commands', '“integrate”, “nullclines”, “direction field”, “set i app to point one five”, “auto”, “run steady state”. Numbers: “two point five”, “minus three”.'],
+    ['Several at once', '“set i app to point one then integrate then nullclines”, or “auto, run, steady state”.'],
+    ['What can I say next?', 'The faint line under “Listening…” shows what makes sense now (after “auto”: Run, Grab, Parameter…). Words that sound close are understood (“graph” → Grab).'],
+    ['Menus, files and scripts', '“file” opens XPP’s File menu, then say an item (“calculator”). In a file picker or the Scripts panel, say the file’s name. “run script nullclines” runs a script.'],
+    ['The page too', '“settings”, “files”, “next window”, “dark mode”, “theme nord”, “flash on bell on”, “save session”, “load hh”.'],
+    ['Help and your own words', '“what can I say” lists everything. If a word is not understood, teach your way of saying it: Settings → Voice → Your own words.'],
+  ]
+  const voiceTour = () => {
+    document.querySelector('.voicetour')?.remove()
+    const d = document.createElement('div')
+    d.className = 'tips voicetour'
+    d.setAttribute('role', 'dialog')
+    d.setAttribute('aria-label', 'Voice tour')
+    let i = 0
+    const draw = () => {
+      d.innerHTML = `<h3></h3><p></p><div class="row"><span class="muted">${i + 1} of ${TOUR.length}</span><button type="button" data-a="skip">Skip</button>${i ? '<button type="button" data-a="back">Back</button>' : ''}<button type="button" data-a="next">${i === TOUR.length - 1 ? 'Done' : 'Next'}</button></div>`
+      d.querySelector('h3')!.textContent = TOUR[i][0]
+      d.querySelector('p')!.textContent = TOUR[i][1]
+    }
+    d.addEventListener('click', (e) => {
+      const a = (e.target as HTMLElement).dataset.a
+      if (!a) return
+      if (a === 'next' && i < TOUR.length - 1) return (i++, draw())
+      if (a === 'back' && i > 0) return (i--, draw())
+      if (a === 'next' || a === 'skip') {
+        store.set('xpp-voice-tour', '1')
+        d.remove()
+      }
+    })
+    draw()
+    document.body.append(d)
+  }
+  $('voicetourbtn').addEventListener('click', () => {
+    ;($('settings') as HTMLDetailsElement).open = false
+    voiceTour()
+  })
+  // the first time voice starts: the tour (once; Skip ends it)
+  voice.button.addEventListener('click', () => {
+    if (store.get('xpp-voice-tour') || voice.engine === '' || voice.engine === 'off') return
+    setTimeout(() => {
+      if (voice.button.classList.contains('on') && !document.querySelector('.voiceoffer')) voiceTour()
+    }, 600)
+  })
+  /** several commands in one breath ("auto, run, enter", "set i app to point
+   *  one then integrate"): split at then/and/commas, else wherever the longest
+   *  known command ends; null when it is not a list of commands */
+  const splitCommands = (said: string, ctx: Context): Array<{ text: string; ctx: Context }> | null => {
+    const pieces = said
+      .toLowerCase()
+      .replace(/(\w)-(\w)/g, '$1 $2') // auto-run
+      .split(/\s*(?:,|;|\band then\b|\bthen\b|\band\b|\bnext\b)\s*/)
+      .map((p) => p.trim())
+      .filter(Boolean)
+    const out: Array<{ text: string; ctx: Context }> = []
+    let c = ctx
+    const known = (t: string, c: Context) =>
+      matchPhrase([t], spoken(), false) || /^(?:run|start|play)\s+(?:the\s+)?script\b/.test(t) || menuPath(t, c) || interpret([t], c, names())
+    let skipped = 0
+    let total = 0
+    for (const piece of pieces) {
+      const w = piece.split(/\s+/)
+      total += w.length
+      let i = 0
+      while (i < w.length) {
+        let j = w.length
+        for (; j > i; j--) if (known(w.slice(i, j).join(' '), c)) break
+        if (j === i) {
+          // a stray word (a cut-off "null", an "um"): skip it, unless most are
+          skipped++
+          i++
+          continue
+        }
+        const text = w.slice(i, j).join(' ')
+        out.push({ text, ctx: c })
+        const m = interpret([text], c, names())
+        const mp = menuPath(text, c)
+        // what the next command applies to: AUTO once it is opened
+        if ((m?.action.kind === 'keys' && m.action.keys.join(' ') === 'f a') || mp?.keys.join(' ') === 'f a') c = 'auto'
+        if (m?.action.kind === 'ui' && m.action.id === 'mainWindow') c = 'xpp'
+        i = j
+      }
+    }
+    if (skipped > Math.max(1, total / 4)) return null
+    return out.length > 1 || (out.length === 1 && skipped) ? out : null
+  }
+  /** one command after another: XPP gets time for each, and AUTO's wait for
+   *  its window to open */
+  let queue: Promise<void> = Promise.resolve()
+  const runSequence = (list: Array<{ text: string; ctx: Context }>) => {
+    queue = queue.then(async () => {
+      const done: string[] = []
+      for (const { text, ctx } of list) {
+        if (ctx === 'auto')
+          for (let t = 0; t < 50 && !session?.windows().some((w) => w.title.startsWith("It's AUTO")); t++) await new Promise((r) => setTimeout(r, 100))
+        const msg = runOne([text], ctx)
+        if (msg && !msg.startsWith('✓')) {
+          voice.flash(`${done.length ? done.join(', ') + '; then ' : ''}“${text}”: ${msg}`, 5000)
+          return
+        }
+        done.push(msg ? msg.slice(2) : text)
+        voice.flash('✓ ' + done.join(' → '), 3000)
+        await new Promise((r) => setTimeout(r, 700))
+      }
+    })
+  }
+  // ---- your own words: Settings -> Voice -> Teach. What the recognizer writes
+  // when you say a command your way becomes a match for that command
+  type Taught = { heard: string; say: string; label: string }
+  const TAUGHT_KEY = 'xpp-voice-taught'
+  const loadTaught = (): Taught[] => {
+    try {
+      return JSON.parse(store.get(TAUGHT_KEY) ?? '[]')
+    } catch {
+      return []
+    }
+  }
+  let taughtList = loadTaught()
+  setTaught(taughtList)
+  const saveTaught = () => {
+    store.set(TAUGHT_KEY, JSON.stringify(taughtList))
+    setTaught(taughtList)
+    renderTaught()
+  }
+  const teachSel = $<HTMLSelectElement>('teachcmd')
+  {
+    const seen = new Set<string>()
+    for (const c of VOICE_COMMANDS) {
+      if (!c.ctx.includes('xpp') && !c.ctx.includes('auto')) continue
+      const say = c.say.find((x) => !x.includes('{'))
+      if (!say || seen.has(c.label)) continue
+      seen.add(c.label)
+      teachSel.append(new Option(c.label, say))
+    }
+    teachSel.value = 'nullclines'
+  }
+  const renderTaught = () => {
+    const ul = $('taughtlist')
+    ul.replaceChildren()
+    for (const t of taughtList) {
+      const li = document.createElement('li')
+      li.textContent = `“${t.heard}” → ${t.label} `
+      const x = document.createElement('button')
+      x.type = 'button'
+      x.className = 'small'
+      x.textContent = '×'
+      x.title = 'Forget this'
+      x.addEventListener('click', () => {
+        taughtList = taughtList.filter((y) => y !== t)
+        saveTaught()
+      })
+      li.append(x)
+      ul.append(li)
+    }
+  }
+  renderTaught()
+  let teaching: { say: string; label: string } | null = null
+  $('teachbtn').addEventListener('click', () => {
+    const opt = teachSel.selectedOptions[0]
+    if (!opt) return
+    teaching = { say: opt.value, label: opt.text }
+    ;($('settings') as HTMLDetailsElement).open = false
+    if (voice.engine === '' || voice.engine === 'off') return voice.onChoose()
+    if (!voice.button.classList.contains('on')) voice.button.click()
+    voice.flash(`Teaching: say “${opt.text}” your way`, 8000)
+  })
+  voice.onHeard = (alts) => {
+    if (teaching) {
+      const t = teaching
+      teaching = null
+      const heard = alts[0].toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
+      if (!heard) return
+      taughtList = [...taughtList.filter((x) => x.heard !== heard), { heard, say: t.say, label: t.label }]
+      saveTaught()
+      return voice.flash(`✓ Learned: “${heard}” means ${t.label}. Teach more ways in Settings → Voice`, 4500)
+    }
+    const ctx = context()
+    const f = flow(ctx)
+    const heard = [...alts, ...alts.map((a) => words(a).join(' '))]
+    const isUniversal = heard.some((h) => UNIVERSAL.includes(h.toLowerCase().trim()))
+    // inside a menu or Grab: only its options count (and the universal ones)
+    if (f.hard && !isUniversal) {
+      const hit = snap(heard, f.options, f.min)
+      if (hit) {
+        const r = runOne([hit.o.say], ctx)!
+        if (r.startsWith('✓') && (f.name === 'Scripts' || f.name === 'Files')) closePanels()
+        return voice.flash(r, r.startsWith('✓') ? 2500 : 3500)
+      }
+    }
+    // something else while the Scripts or Files panel is open: close it first
+    if (f.name === 'Scripts' || f.name === 'Files') closePanels()
+    // the whole utterance as one command first; else a list of them
+    let one = runOne(alts, ctx, true)
+    if (one === null) {
+      const list = splitCommands(alts[0], ctx)
+      if (list) return runSequence(list)
+      // a near miss of what is expected here ("graph" for Grab)
+      const hit = snap(heard, f.options, f.min)
+      if (hit) one = runOne([hit.o.say], ctx)
+      if (one === null) one = runOne(alts, ctx)!
+      if (one === 'not a command') return voice.flash(`Not a command: “${alts[0]}”. ${f.hard ? `In ${f.name}, say: ${f.options.slice(0, 5).map((o) => o.label).join(', ')}` : 'Say “what can I say”'}`, 4500)
+    }
+    voice.flash(one, one.startsWith('✓') ? 2500 : 3500)
+  }
+  /** one command: a message to show (✓ ... when done); null when `probe`
+   *  and nothing fits */
+  const runOne = (alts: string[], ctx: Context, probe = false): string | null => {
+    // a menu left open by "file": its item said alone ("auto")
+    if (openMenu) {
+      const om = openMenu
+      openMenu = null
+      if (performance.now() - om.at < 20000) {
+        const said = alts.map((a) => words(a).join(' '))
+        const hit = matchPhrase(said, om.m.items, false) ?? matchPhrase(said, om.m.items, true)
+        if (hit) {
+          const r = pressMenu(hit.c.keys.split(' ').slice(om.m.keys.length), om.m.to)
+          if (!r) afterKeys(hit.c.keys.split(' '), om.m.to) // a submenu opens (Graphics -> Freeze)
+          return r ?? `✓ ${om.m.name} → ${hit.c.label}`
+        }
+        // something else: close the menu first
+        session?.pressKey('Escape')
+      }
+    }
+    const plain = alts.map((a) => words(a).join(' '))
+    // a file chosen in XPP's picker, or in the Files panel
+    const pf = alts[0].match(/^pick file (.+)$/)
+    if (pf) {
+      const pk = picker()
+      if (!pk) return 'The file picker is not open'
+      session!.activate(pk.w.id)
+      session!.typeValue(pf[1])
+      return '✓ ' + pf[1]
+    }
+    const df = alts[0].match(/^download file (.+)$/)
+    if (df && session) {
+      download(df[1], session.readFile(df[1]))
+      return '✓ Downloading ' + df[1]
+    }
+    // "do script", "file script", "run script": the Scripts panel (bigger than XPP's picker)
+    if (plain.some((a) => /^(?:do script|file script|file do script|run script|run a script|choose a script|choose script)$/.test(a)) && scriptItems().length) {
+      openPanel('scripts')
+      return '✓ Scripts: say a script’s name'
+    }
+    // the page: settings, files, themes, windows ...
+    const pc = matchPhrase(plain, pageCommands(), false)
+    if (pc) {
+      const r = pc.run()
+      return typeof r === 'string' ? r : '✓ ' + pc.label
+    }
+    for (const a of plain) {
+      const r = loadByName(a)
+      if (r) return r
+    }
+    for (const a of alts) {
+      const mp = menuPath(a, ctx)
+      if (!mp) continue
+      if (mp.open && interpret([a], ctx, names())) break // "auto", "nullclines": the command itself
+      const r = pressMenu(mp.keys, mp.to)
+      if (r) return r
+      if (mp.open) openMenu = { m: mp.open, at: performance.now() }
+      return '✓ ' + mp.label + (mp.open ? ': say an item, or “escape”' : '')
+    }
+    const own = (near: boolean): string | null => {
+      if (!session) return null
+      const hit = matchPhrase(alts, spoken(), near)
+      if (!hit) return null
+      mobile.runCommand(hit.c)
+      return '✓ ' + hit.c.label
+    }
+    const mine = own(false)
+    if (mine) return mine
+    // "run script hh auto": a script in XPP's folder, by its name
+    const rs = alts.map((a) => a.match(/^\s*(?:run|start|play)\s+(?:the\s+)?script\s*(.*)$/i)).find(Boolean)
+    if (rs && session) {
+      const list = scriptItems()
+      if (!rs[1].trim() || !list.length) {
+        mobile.runCommand({ label: 'Scripts…', feature: 'scripts' })
+        return '✓ Scripts'
+      }
+      const said = alts.map((a) => words(a.replace(/^\s*(?:run|start|play)\s+(?:the\s+)?script\s*/i, '')).join(' '))
+      const hit = matchPhrase(said, list, false) ?? matchPhrase(said, list, true) ?? closestScript(said[0], list)
+      if (!hit) return `No script called “${said[0]}”. Say “scripts” for the list`
+      session.runScript(hit.file)
+      return '✓ Running ' + hit.file
+    }
+    const m = interpret(alts, ctx, names(), (n) => -(recent.get(n) ?? 0))
+    if (!m) {
+      // a near miss of a Cmd label: only once it is not a list of commands
+      if (probe) return null
+      return own(true) ?? 'not a command'
+    }
+    if (m.ambiguous) return `Which one: ${m.ambiguous.join(' or ')}? Spell it letter by letter`
+    const msg = doVoice(m.action)
+    if ((!msg || msg.startsWith('✓')) && m.action.kind === 'set') recent.set(m.action.name, Date.now())
+    return msg ?? '✓ ' + m.label
+  }
+  /** carry out a spoken command; a message when it could not be done */
+  const doVoice = (a: Action): string | void => {
+    const s = session
+    const zoom = (z: string) => document.querySelector<HTMLButtonElement>(`.zoombar [data-z="${z}"]`)?.click()
+    switch (a.kind) {
+      case 'keys': {
+        if (!s) return 'XPP is not running'
+        if (a.to === 'auto') {
+          const w = s.windows().find((w) => w.title.startsWith("It's AUTO"))
+          if (!w) return 'The AUTO window is not open (say “auto”)'
+          s.activate(w.id)
+        } else if (a.to === 'main') s.activate(s.mainWindow)
+        for (const k of a.keys) s.pressKey(k)
+        afterKeys(a.keys, a.to === 'auto' || (a.to === 'active' && context() === 'auto') ? 'auto' : undefined)
+        return
+      }
+      case 'set': {
+        const p = s?.params().find((p) => p.name.toLowerCase() === a.name.toLowerCase())
+        if (!s || !p) return `“${a.name}” is not a parameter or variable of this model`
+        s.setValue(p.name, a.value, p.ic)
+        return
+      }
+      case 'numeric':
+        if (!s) return 'XPP is not running'
+        s.activate(s.mainWindow)
+        s.pressKey('u')
+        s.pressKey(a.key)
+        s.typeValue(String(a.value))
+        s.pressKey('Escape')
+        return
+      case 'menu':
+        if (!s) return 'XPP is not running'
+        s.activate(s.mainWindow)
+        for (const k of a.keys) s.pressKey(k)
+        afterKeys(a.keys)
+        return
+      case 'edit': {
+        // XPP's prompt line (and lists): the matching keys
+        if (!s) return
+        const n = Math.min(a.n ?? 1, 50)
+        const map: Partial<Record<typeof a.op, string>> = { home: 'Home', end: 'End', up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', backspace: 'Backspace' }
+        if (a.op === 'deleteLine') {
+          s.bellMutedUntil = performance.now() + 3000
+          s.pressKey('End')
+          for (let i = 0; i < 40; i++) s.pressKey('Backspace')
+          return
+        }
+        const k = map[a.op]
+        if (!k) return
+        for (let i = 0; i < (['home', 'end'].includes(a.op) ? 1 : n); i++) s.pressKey(k)
+        return
+      }
+      case 'pick':
+        return 'Numbered buttons are in the Android app only'
+      case 'option':
+      case 'value':
+        return 'That is for the .ode editor of the Android app'
+      case 'ui':
+        switch (a.id) {
+          case 'help': return showVoiceHelp(context())
+          case 'sleep': return voice.sleep()
+          case 'zoomIn': return zoom('in')
+          case 'zoomOut': return zoom('out')
+          case 'fit': return zoom('fit')
+          case 'keyboard': return zoom('kbd')
+          case 'sliders': return void sliders.toggle()
+          case 'shareGraph': return void mobile.runCommand({ label: 'Share graph', feature: 'share-graph' })
+          case 'csv': return void mobile.runCommand({ label: 'Data (CSV)', feature: 'share-data' })
+          case 'edit': return $('edit').click()
+          case 'tips': return mobile.showTips()
+          case 'mainWindow': return void s?.activate(s.mainWindow)
+          case 'scripts':
+            if (!scriptItems().length) return 'No scripts in XPP’s folder yet (say “new script”)'
+            return void mobile.runCommand({ label: 'Scripts…', feature: 'scripts' })
+          case 'newScript': return openScriptEditor(null)
+          case 'numbersOn':
+          case 'numbersOff':
+            return 'Numbered buttons are in the Android app only'
+        }
+    }
+  }
+  const showVoiceHelp = (ctx: Context) => {
+    document.querySelector('.voicehelp')?.remove()
+    const d = document.createElement('div')
+    d.className = 'tips voicehelp'
+    d.setAttribute('role', 'dialog')
+    d.setAttribute('aria-label', 'Voice commands')
+    d.innerHTML = `<h3>You can say (${ctx === 'auto' ? 'AUTO window' : 'XPP window'})</h3><table></table>
+      <p>Numbers: “two point five”, “minus three”, “one e minus three”. Names: as words, or
+      spelled (“g k”). The Cmd panel’s buttons: say their label. Scripts: “run script” and its name
+      (“run script h h auto”). “Stop listening” or 🎤 ends voice.</p><button type="button">Close</button>`
+    const tbl = d.querySelector('table')!
+    const page = pageCommands().filter((c) => !c.label.startsWith('Window ') && !c.label.startsWith('Theme ')).map((c) => [c.phrases[0], c.label] as [string, string])
+    for (const [say, what] of [...helpFor(ctx), ...spoken().map((x) => [plainWords(x.c.label), x.c.label] as [string, string]), ...page, ['theme nord, theme sepia …', 'Any theme'], ['show auto, next window', 'Windows'], ['load hh', 'Load an example'], ['a file’s name', 'In a file picker or the Scripts / Files panel']]) {
+      const tr = document.createElement('tr')
+      tr.append(Object.assign(document.createElement('td'), { textContent: say }), Object.assign(document.createElement('td'), { textContent: what }))
+      tbl.append(tr)
+    }
+    d.querySelector('button')!.addEventListener('click', () => d.remove())
+    document.body.append(d)
+  }
+  // ---- choosing the engine: Settings -> Voice, or at the first 🎤
+  const sel = $<HTMLSelectElement>('webvoiceengine')
+  const about = async () => {
+    const e = voice.engine
+    const del = $<HTMLButtonElement>('voicedelete')
+    del.hidden = true
+    if (e === '' || e === 'off') {
+      $('voiceabout').textContent = 'Off. Choose how to turn speech into text: ' +
+        (Object.keys(ENGINES) as RealEngine[]).map((k) => `${ENGINES[k].name}: ${ENGINES[k].short}`).join('; ') + '.'
+      return
+    }
+    const info = ENGINES[e]
+    const ok = canRun(e)
+    const have = e !== 'browser' && ok && (await voice.downloaded(e))
+    $('voiceabout').textContent = (ok ? '' : 'This browser cannot use it. ') + info.about + (e === 'browser' ? '' : have ? ' Downloaded: ready offline.' : ' Not downloaded yet: the first 🎤 downloads it.')
+    del.hidden = !have
+  }
+  voice.onEngineChange = (e) => {
+    sel.value = e
+    if (e === 'vosk') void offlineWords()
+    void about()
+    voiceShown()
+  }
+  sel.value = voice.engine
+  sel.addEventListener('change', () => voice.setEngine(sel.value as WebEngine))
+  $('voicedelete').addEventListener('click', async () => {
+    const e = voice.engine as RealEngine
+    await voice.deleteDownload(e)
+    notice(`${ENGINES[e].name}: the download was removed from this browser`)
+    void about()
+  })
+  $('settings').addEventListener('toggle', () => void about())
+  voice.onChoose = () => {
+    document.querySelector('.voiceoffer')?.remove()
+    const d = document.createElement('div')
+    d.className = 'tips voiceoffer'
+    d.setAttribute('role', 'dialog')
+    d.setAttribute('aria-label', 'Voice commands')
+    d.innerHTML = '<h3>Voice commands: how should speech become text?</h3><div class="vchoices"></div><p class="muted">You can change this later in Settings → Voice.</p><div class="row"><button type="button" class="vcancel">Not now</button></div>'
+    for (const k of Object.keys(ENGINES) as RealEngine[]) {
+      const c = document.createElement('div')
+      c.className = 'vchoice'
+      const ok = canRun(k)
+      c.innerHTML = `<b></b><p></p><button type="button"></button>`
+      c.querySelector('b')!.textContent = ENGINES[k].name
+      c.querySelector('p')!.textContent = (ok ? '' : 'Not available in this browser. ') + ENGINES[k].about
+      const b = c.querySelector('button')!
+      b.textContent = k === 'browser' ? 'Use browser speech' : `Download ${ENGINES[k].mb} MB and use it`
+      b.disabled = !ok
+      b.addEventListener('click', () => {
+        d.remove()
+        voice.setEngine(k)
+        voice.button.click() // start listening (downloads first if needed)
+      })
+      d.querySelector('.vchoices')!.append(c)
+    }
+    d.querySelector('.vcancel')!.addEventListener('click', () => d.remove())
+    document.body.append(d)
+  }
+  if (voice.engine === 'vosk') void offlineWords()
+  // where the 🎤 shows: the zoom bar on phones and tablets (unless Voice is
+  // Off), the header on computers once an engine is chosen
+  const hdr = $<HTMLButtonElement>('voicehdr')
+  hdr.addEventListener('click', () => voice.button.click())
+  voice.button.addEventListener('click', () => setTimeout(() => hdr.classList.toggle('on', voice.button.classList.contains('on')), 50))
+  mobile.addTool(voice.button)
+  voiceShown = () => {
+    const real = voice.engine !== '' && voice.engine !== 'off'
+    voice.button.hidden = voice.engine === 'off'
+    hdr.hidden = !(mobile.device === 'desktop' && real)
+  }
+  voiceShown()
+  // tests: Chrome emulating a phone has no microphone
+  ;(window as unknown as { xppVoiceTest: unknown }).xppVoiceTest = {
+    say: (t: string) => voice.onHeard([t]),
+    wav: (url: string, e: 'vosk' | 'whisper') => voice.testWav(url, e),
+    voice,
+  }
+}
+const updateDevice = () => {
+  mobile.apply(detectDevice(viewMode))
+  voiceShown()
+}
+updateDevice()
+watchDevice(updateDevice)
+viewSelect.addEventListener('change', () => {
+  viewMode = viewSelect.value as ViewMode
+  store.set('xpp-view', viewMode)
+  updateDevice()
+})
+// Settings -> Rotation (phones and tablets)
+const rotationSelect = $<HTMLSelectElement>('rotation')
+rotationSelect.value = store.get('xpp-rotation') || 'auto'
+if (rotationSelect.value !== 'auto') void lockRotation(rotationSelect.value as 'portrait')
+rotationSelect.addEventListener('change', async () => {
+  const mode = rotationSelect.value as 'auto' | 'portrait' | 'landscape'
+  if (await lockRotation(mode)) store.set('xpp-rotation', mode)
+  else {
+    rotationSelect.value = 'auto'
+    notice("This browser can't lock the rotation; install XPPAUT-Web as an app (or use the phone's rotation lock)")
+  }
+})
+// ☰ on phones: the toolbar folds into a menu
+$('menubtn').addEventListener('click', () => {
+  const open = document.querySelector('header')!.classList.toggle('menu-open')
+  $('menubtn').setAttribute('aria-expanded', String(open))
+})
+document.addEventListener('pointerdown', (e) => {
+  const h = document.querySelector('header')!
+  if (h.classList.contains('menu-open') && !h.contains(e.target as Node)) {
+    h.classList.remove('menu-open')
+    $('menubtn').setAttribute('aria-expanded', 'false')
+  }
+}, true)
+
+// ---- themes (colours of the page around XPP; XPP's windows keep their look) --
+const THEMES: Array<{ id: string; name: string; swatch: string[] }> = [
+  { id: 'system', name: 'System (light/dark)', swatch: ['#ffffff', '#5c6670', '#222326', '#2a3038'] },
+  { id: 'light', name: 'Light', swatch: ['#ffffff', '#e6e6e1', '#5c6670', '#2f5d8a'] },
+  { id: 'dark', name: 'Dark', swatch: ['#222326', '#34363a', '#2a3038', '#4b7fb3'] },
+  { id: 'midnight', name: 'Midnight Blue', swatch: ['#101d36', '#1c3158', '#14274a', '#3d7bd9'] },
+  { id: 'solarized-light', name: 'Solarized Light', swatch: ['#fdf6e3', '#eee8d5', '#586e75', '#268bd2'] },
+  { id: 'solarized-dark', name: 'Solarized Dark', swatch: ['#002b36', '#073642', '#0a3a47', '#268bd2'] },
+  { id: 'nord', name: 'Nord', swatch: ['#3b4252', '#4c566a', '#434c5e', '#5e81ac'] },
+  { id: 'dracula', name: 'Dracula', swatch: ['#282a36', '#44475a', '#343746', '#bd93f9'] },
+  { id: 'sepia', name: 'Sepia', swatch: ['#faf4e6', '#ebdfc4', '#7a6344', '#8b5a2b'] },
+  { id: 'contrast', name: 'High Contrast', swatch: ['#000000', '#ffffff', '#000000', '#ffff00'] },
+  // multi-coloured, palettes from open-source editor themes (MIT)
+  { id: 'funky1', name: 'Funky 1 (Fairy Floss)', swatch: ['#5a5475', '#ffb8d1', '#c2ffdf', '#c5a3ff'] },
+  { id: 'funky2', name: 'Funky 2 (Night Owl)', swatch: ['#011627', '#82aaff', '#c792ea', '#addb67'] },
+  { id: 'funky3', name: 'Funky 3 (Synthwave)', swatch: ['#241b2f', '#ff7edb', '#36f9f6', '#fede5d'] },
+]
+
+function applyTheme(id: string) {
+  if (id === 'system') delete document.documentElement.dataset.theme
+  else document.documentElement.dataset.theme = id
+  for (const b of document.querySelectorAll<HTMLButtonElement>('#themelist button'))
+    b.setAttribute('aria-checked', String(b.dataset.theme === id))
+  // the phone's status bar / app title bar takes the toolbar's colour
+  const bar = getComputedStyle(document.documentElement).getPropertyValue('--bar').trim()
+  if (bar) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', bar)
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme(store.get('xpp-theme') || 'system'))
+
+{
+  const list = $('themelist')
+  for (const t of THEMES) {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.setAttribute('role', 'menuitemradio')
+    b.dataset.theme = t.id
+    b.innerHTML = `<span class="swatch">${t.swatch.map((c) => `<i style="background:${c}"></i>`).join('')}</span>`
+    b.append(t.name)
+    b.addEventListener('click', () => {
+      applyTheme(t.id)
+      store.set('xpp-theme', t.id)
+      ;($('themes') as HTMLDetailsElement).open = false
+    })
+    list.append(b)
+  }
+  applyTheme(store.get('xpp-theme') || 'system') // index.html applied it early too
+}
+
+// toolbar menus (Settings, Files): Esc or a click elsewhere closes them.
+// Capture phase, so XPP does not also get that Esc.
+const openMenus = () => [...document.querySelectorAll<HTMLDetailsElement>('header details[open]')]
+window.addEventListener(
+  'keydown',
+  (e) => {
+    if (e.key !== 'Escape') return
+    const open = openMenus()
+    if (!open.length) return
+    for (const d of open) d.open = false
+    e.preventDefault()
+    e.stopImmediatePropagation()
+  },
+  true,
+)
+document.addEventListener(
+  'pointerdown',
+  (e) => {
+    for (const d of openMenus()) if (!d.contains(e.target as Node)) d.open = false
+  },
+  true,
+)
+
+// ---- session: save everything as one .zip; warn before leaving --------------
+let unsaved = false // the user did something since the last "Save session"
+let leaving = false // we are leaving on purpose (already asked)
+const savedElsewhere = new Set<string>() // exports XPP wrote outside /work
+
+for (const ev of ['pointerdown', 'keydown'])
+  window.addEventListener(ev, () => {
+    if (session?.running) unsaved = true
+  }, true)
+
+// closing the tab or reloading: browsers only allow their own generic prompt
+window.addEventListener('beforeunload', (e) => {
+  if (unsaved && !leaving) {
+    e.preventDefault()
+    e.returnValue = ''
+  }
+})
+
+const leaveDialog = $<HTMLDialogElement>('leave')
+// ---- files a model needs ----------------------------------------------------------
+type Extra = { name: string; data: Uint8Array }
+
+/** the files named by `table <name> <file>` lines (not `table <name> % ...`) */
+function tableFiles(text: string): string[] {
+  const out: string[] = []
+  for (const line of text.split(/\r?\n/)) {
+    const m = /^\s*table\s+\S+\s+(\S+)/i.exec(line)
+    if (m && m[1] !== '%' && !out.includes(m[1])) out.push(m[1])
+  }
+  return out
+}
+
+const fileBase = (p: string) => p.slice(p.replace(/\\/g, '/').lastIndexOf('/') + 1)
+
+/** where XPP will look for `ref` (its folder is /work): "data/x.tab", "/tabular/x.tab" */
+function placeOf(ref: string): string {
+  const parts = (ref.startsWith('/') ? ref : '/work/' + ref).split('/')
+  const out: string[] = []
+  for (const p of parts) {
+    if (p === '..') out.pop()
+    else if (p && p !== '.') out.push(p)
+  }
+  const abs = '/' + out.join('/')
+  return abs.startsWith('/work/') ? abs.slice(6) : abs
+}
+
+/**
+ * Check the table files the model names against the files given with it.
+ * A file given by name is also put where the model looks for it (a folder
+ * named in the .ode). Missing files: ask (Add files… / Start anyway / Cancel).
+ * Returns the files to start with, or null to cancel.
+ */
+async function neededFiles(name: string, text: string, extras: Extra[]): Promise<Extra[] | null> {
+  let files = [...extras]
+  for (;;) {
+    const missing: string[] = []
+    for (const ref of tableFiles(text)) {
+      const at = placeOf(ref)
+      if (files.some((f) => f.name === at)) continue
+      const have = files.find((f) => fileBase(f.name) === fileBase(ref))
+      if (have) files.push({ name: at, data: have.data })
+      else missing.push(ref)
+    }
+    if (!missing.length) return files
+    const answer = await askForFiles(name, missing)
+    if (answer === 'cancel') return null
+    if (answer === 'anyway') return files
+    files = [...files, ...answer]
+  }
+}
+
+function askForFiles(name: string, missing: string[]): Promise<'cancel' | 'anyway' | Extra[]> {
+  const d = $<HTMLDialogElement>('needfiles')
+  const one = missing.length === 1
+  $('needtitle').textContent = `${name} needs ${one ? 'a file' : missing.length + ' files'} you have not added`
+  $('needtext').textContent =
+    `Its table ${one ? 'line names' : 'lines name'} the ${one ? 'file' : 'files'} below. XPP cannot start without ${one ? 'it' : 'them'}: add ${one ? 'it' : 'them'} (you can pick several at once).`
+  const list = $('needlist')
+  list.replaceChildren(...missing.map((m) => Object.assign(document.createElement('li'), { textContent: m })))
+  const input = $<HTMLInputElement>('needadd')
+  input.value = ''
+  d.returnValue = ''
+  d.showModal()
+  return new Promise((resolve) => {
+    const picked = async () => {
+      d.removeEventListener('close', closed)
+      const files = await Promise.all(
+        [...(input.files ?? [])].map(async (f) => ({ name: f.name, data: new Uint8Array(await f.arrayBuffer()) })),
+      )
+      d.close()
+      resolve(files)
+    }
+    const closed = () => {
+      input.removeEventListener('change', picked)
+      resolve(d.returnValue === 'anyway' ? 'anyway' : 'cancel')
+    }
+    input.addEventListener('change', picked, { once: true })
+    d.addEventListener('close', closed, { once: true })
+  })
+}
+
+/** XPP quit before showing a window: show its messages instead of a bare start screen */
+function loadFailed(name: string, text: string): Promise<void> {
+  const d = $<HTMLDialogElement>('loadfail')
+  const lines = terminal
+    .text()
+    .split('\n')
+    .filter((l) => l.trim())
+  $('failtitle').textContent = `XPP could not open ${name}`
+  $('failtext').textContent = lines.slice(-6).join('\n') || '(no message)'
+  const notFound = lines.some((l) => /not found/i.test(l))
+  $('failhint').textContent =
+    notFound || tableFiles(text).length
+      ? 'If the model uses table or data files, open it again together with them: pick them all in Open .ode file…, or drop them here together.'
+      : 'Fix the model (Edit .ode, or your own editor) and open it again.'
+  d.showModal()
+  return new Promise((resolve) => d.addEventListener('close', () => resolve(), { once: true }))
+}
+
+function askToSave(kind: 'leave' | 'quit'): Promise<'save' | 'discard' | 'cancel'> {
+  const quit = kind === 'quit'
+  $('leavetitle').textContent = quit ? 'XPP has quit. Save this session?' : 'Save your session first?'
+  $('leavetext').textContent =
+    (quit ? '' : 'This session has work that has not been saved. ') +
+    "Saving downloads a .zip file with everything XPP saved, its graphs and AUTO diagram (SVG and PostScript), screenshots of the windows, XPP's state as a .set file, the data, and XPP's output."
+  $('leavecancel').hidden = quit
+  $('leavediscard').textContent = quit ? "Don't save" : 'Continue without saving'
+  $('leavesave').textContent = quit ? 'Save session' : 'Save and continue'
+  leaveDialog.returnValue = ''
+  leaveDialog.showModal()
+  return new Promise((resolve) =>
+    leaveDialog.addEventListener(
+      'close',
+      () => resolve((leaveDialog.returnValue || 'cancel') as 'save' | 'discard' | 'cancel'),
+      { once: true },
+    ),
+  )
+}
+
+/** Leave (restart, switch model, ...) after offering to save the session. */
+async function leaveThen(go: () => void, cancelled: () => void = () => {}) {
+  if (unsaved && session) {
+    const answer = await askToSave('leave')
+    if (answer === 'cancel') return cancelled()
+    if (answer === 'save') await saveSession()
+    unsaved = false // answered: do not ask again for the same work
+  }
+  leaving = true
+  go()
+}
+
+/** the start screen (example list, Run, Open .ode file…), keeping other
+ *  link options such as ?font= */
+function backToStart() {
+  leaving = true
+  const q = new URLSearchParams(location.search)
+  q.delete('ode')
+  const rest = q.toString()
+  location.assign(location.pathname + (rest ? '?' + rest : ''))
+}
+
+function canvasPng(c: HTMLCanvasElement): Promise<Uint8Array> {
+  return new Promise((resolve, reject) =>
+    c.toBlob(async (b) => (b ? resolve(new Uint8Array(await b.arrayBuffer())) : reject(new Error('no image'))), 'image/png'),
+  )
+}
+
+/** one picture of all windows, placed as they were on screen */
+function composite(imgs: WindowImage[]): HTMLCanvasElement | null {
+  if (!imgs.length) return null
+  const x0 = Math.min(...imgs.map((i) => i.x))
+  const y0 = Math.min(...imgs.map((i) => i.y))
+  const x1 = Math.max(...imgs.map((i) => i.x + i.canvas.width))
+  const y1 = Math.max(...imgs.map((i) => i.y + i.canvas.height))
+  const c = document.createElement('canvas')
+  c.width = x1 - x0 + 16
+  c.height = y1 - y0 + 16
+  const g = c.getContext('2d')!
+  g.fillStyle = '#5c6670'
+  g.fillRect(0, 0, c.width, c.height)
+  for (const i of imgs) {
+    g.fillStyle = 'rgba(0,0,0,0.45)'
+    g.fillRect(i.x - x0 + 7, i.y - y0 + 7, i.canvas.width + 2, i.canvas.height + 2)
+    g.drawImage(i.canvas, i.x - x0 + 8, i.y - y0 + 8)
+  }
+  return c
+}
+
+async function saveSession() {
+  if (!session) return
+  // XPP's message boxes are titled "!!", its yes/no questions "!!!!"
+  const safe = (t: string) =>
+    (t === '!!' ? 'Message' : t === '!!!!' ? 'Question' : t).replace(/[^A-Za-z0-9._-]+/g, '_').replace(/^_+|_+$/g, '') ||
+    'window'
+  const files: Array<{ name: string; data: Uint8Array }> = []
+  for (const f of session.listFiles()) files.push({ name: 'files/' + f.name, data: session.readFile(f.name) })
+  for (const p of savedElsewhere) {
+    try {
+      files.push({ name: 'files/other-folders' + p, data: session.readFile(p) })
+    } catch {
+      /* gone */
+    }
+  }
+  // XPP's own exports: every graph window and the AUTO diagram (SVG and
+  // PostScript), the state as a .set file, the data as CSV. While XPP runs it
+  // writes them now; after it quit, they were written just before quitting.
+  let dir = '/xw-session-quit'
+  if (session.running) {
+    dir = '/xw-session'
+    if ((await session.exportSession(dir)) < 0) notice('XPP is busy: figures from XPP left out, screenshots kept')
+  }
+  for (const f of session.readDir(dir)) {
+    const data = session.readFile(dir + '/' + f)
+    if (f === 'state.set') files.push({ name: `${odeName}.set`, data })
+    else if (f === 'data.csv') files.push({ name: 'data.csv', data })
+    else if (f === 'diagram.dat' || f === 'allinfo.dat' || f.endsWith('.auto')) files.push({ name: 'auto/' + f, data })
+    else if (f.endsWith('.dat')) files.push({ name: 'data/' + f, data })
+    else files.push({ name: 'figures/' + f, data })
+  }
+  const imgs = session.windowImages()
+  let n = 1
+  // SS/: screenshots of the windows as they are now (or were when XPP quit)
+  for (const i of imgs) files.push({ name: `SS/${String(n++).padStart(2, '0')}-${safe(i.title)}.png`, data: await canvasPng(i.canvas) })
+  const screen = composite(imgs)
+  if (screen) files.push({ name: 'SS/00-all-windows.png', data: await canvasPng(screen) })
+  // windows closed earlier (AUTO, extra graphs): their last picture
+  for (const i of session.closedImages()) files.push({ name: `SS/closed-${safe(i.title)}.png`, data: await canvasPng(i.canvas) })
+  files.push({ name: 'output.txt', data: new TextEncoder().encode(terminal.text()) })
+  // summary.txt: what XPP's small result windows said (messages such as the
+  // period, the Equilibria window of Sing pts), oldest first
+  const results = session.resultTexts()
+  const hhmmss = (d: Date) => d.toTimeString().slice(0, 8)
+  files.push({
+    name: 'summary.txt',
+    data: new TextEncoder().encode(
+      `XPPAUT-Web session summary: the text of XPP's result windows\nModel: ${odeName}\n\n` +
+        (results.length
+          ? results.map((r) => `== ${hhmmss(r.time)}  ${r.title} ==\n${r.text}\n`).join('\n')
+          : '(XPP showed no result windows in this session)\n') +
+        // what XPP printed after starting (eigenvalues of Sing pts, the
+        // period, the adjoint's checks, AUTO's messages); all of it is in output.txt
+        `\n== XPP's printed results (its terminal after start-up) ==\n${printedResults(terminal.text())}`,
+    ),
+  })
+  const when = new Date()
+  files.push({
+    name: 'README.txt',
+    data: new TextEncoder().encode(
+      `XPPAUT-Web session\n\nModel: ${odeName}\nSaved: ${when.toString()}\nSite: ${location.origin + location.pathname}\n\n` +
+        `files/    everything in XPP's working folder (the model, data, plots, .set files, AUTO results)\n` +
+        `figures/  made by XPP itself when saving: graph-1 is the main window, graph-2... the\n` +
+        `          windows from Makewindow; auto-diagram is AUTO's bifurcation diagram. SVG\n` +
+        `          (vector, opens in a browser or Inkscape) and PostScript (.ps) of each\n` +
+        `          surface.svg/.ps/.gif: the Surface view of the array plot, if it was open\n` +
+        `auto/     AUTO's data, written as its File menu would: diagram.dat (Write pts:\n` +
+        `          x y1 y2 type branch two-par-flag, as plotted), allinfo.dat (All info:\n` +
+        `          every point with all variables and eigenvalues) and <model>.auto\n` +
+        `          (Save diagram: load it back in AUTO with File -> Load diagram).\n` +
+        `          AUTO's raw results (<model>.b .d .s), if any, are in files/\n` +
+        `data/     the plotted data, as XPP writes it: graph-N-curve.dat (Graphic stuff ->\n` +
+        `          Export data: x and each plotted y), graph-N-dirfield.dat (direction field\n` +
+        `          arrows: x y x_end y_end), graph-N-frozen-*.dat (frozen curves: x y),\n` +
+        `          nullclines.dat (Nullcline -> Save: short line pieces, two rows\n` +
+        `          "x y k" each, k = 1 for the x-nullcline, 2 for the y-nullcline) and\n` +
+        `          nullclines-frozen-K.dat (frozen sets)\n` +
+        `SS/       screenshots of the XPP windows at the time of saving: one per window,\n` +
+        `          00-all-windows.png with all of them as arranged on screen, and\n` +
+        `          closed-*.png, the last picture of windows closed before saving\n` +
+        `${odeName}.set  XPP's state (parameters, initial conditions, numerics, graphics):\n` +
+        `          load it in XPP with File -> Read set\n` +
+        `data.csv  the data XPP holds (as in its Data Viewer)\n` +
+        `output.txt XPP's terminal output\n` +
+        `summary.txt the text of XPP's result windows (messages such as the period of\n` +
+        `          Initialconds -> Periodic, the Equilibria window of Sing pts), oldest\n` +
+        `          first; SS/ has a picture of the last of each (closed-Message.png,\n` +
+        `          closed-Equilibria.png)\n`,
+    ),
+  })
+  const p2 = (n: number) => String(n).padStart(2, '0')
+  const stamp = `${when.getFullYear()}-${p2(when.getMonth() + 1)}-${p2(when.getDate())}_${p2(when.getHours())}-${p2(when.getMinutes())}`
+  download(`${odeName.replace(/\.ode$/, '')}-session-${stamp}.zip`, makeZip(files))
+  unsaved = false
+  notice('Session saved')
+}
+
+/** XPP's terminal output after its start-up lines (the model summary and
+    the copyright and colour lines) */
+function printedResults(text: string): string {
+  const lines = text.split('\n')
+  let start = 0
+  lines.forEach((l, i) => {
+    if (/^XPPAUT [\d.]+ Copyright|colormap|TrueColor visual/.test(l.trim())) start = i + 1
+  })
+  const rest = lines.slice(start).join('\n').trim()
+  return rest ? rest + '\n' : '(nothing)\n'
+}
+
+$('savesession').addEventListener('click', () => void saveSession())
+
+// ---- installable app: Install button; offer new versions when deployed ------
+setupPwa($<HTMLButtonElement>('install'), (apply) => {
+  const bar = document.createElement('div')
+  bar.className = 'toast'
+  bar.setAttribute('role', 'status')
+  bar.innerHTML =
+    '<span>A new version of XPPAUT-Web is available.</span>' +
+    '<button type="button" class="primary">Update</button><button type="button">Later</button>'
+  const [update, later] = bar.querySelectorAll('button')
+  update.addEventListener('click', () => leaveThen(() => { bar.remove(); apply() }))
+  later.addEventListener('click', () => bar.remove())
+  document.querySelector('.toast')?.remove()
+  document.body.append(bar)
+})
+
+// ---- XPP font size (Aa): -bigfont / -smallfont when XPP starts ---------------
+let startedFont: FontChoice | null = null // what the running XPP uses
+{
+  const presets = $('fontpresets')
+  for (const p of PRESETS) {
+    const l = document.createElement('label')
+    l.innerHTML = `<input type="radio" name="fontpreset" value="${p.id}"> <span></span> <small></small>`
+    l.querySelector('span')!.textContent = p.label
+    l.querySelector('small')!.textContent = p.fonts.big === p.fonts.small ? p.fonts.big : `${p.fonts.big} / ${p.fonts.small}`
+    presets.append(l)
+  }
+  for (const id of ['fontbig', 'fontsmall'])
+    $(id).innerHTML = FONT_NAMES.map((n) => `<option value="${n}">${n}</option>`).join('')
+}
+const fontRadios = () => [...document.querySelectorAll<HTMLInputElement>('input[name="fontpreset"]')]
+
+/** show a choice in the panel */
+function showFont(f: FontChoice = chosenFont()) {
+  const key = fontKey(f)
+  const preset = PRESETS.some((p) => p.id === key) ? key : 'custom'
+  for (const r of fontRadios()) r.checked = r.value === preset
+  ;($('fontbig') as HTMLSelectElement).value = f.big
+  ;($('fontsmall') as HTMLSelectElement).value = f.small
+  $('fontpick').classList.toggle('on', preset === 'custom')
+  const pending = startedFont && session?.running && fontKey(startedFont) !== key
+  $('fontnote').textContent = pending
+    ? 'Used the next time XPP starts.'
+    : 'XPP picks its fonts when it starts.'
+}
+
+function panelFont(): FontChoice {
+  const r = fontRadios().find((x) => x.checked)?.value ?? 'normal'
+  const p = PRESETS.find((x) => x.id === r)
+  if (p) return { ...p.fonts }
+  return { big: ($('fontbig') as HTMLSelectElement).value, small: ($('fontsmall') as HTMLSelectElement).value }
+}
+
+const fontDialog = $<HTMLDialogElement>('fontask')
+async function changeFont() {
+  const f = panelFont()
+  $('fontpick').classList.toggle('on', fontRadios().find((x) => x.checked)?.value === 'custom')
+  // a link's ?font=… no longer applies once the user chooses
+  const q = new URLSearchParams(location.search)
+  if (q.has('font')) {
+    q.delete('font')
+    history.replaceState(history.state, '', '?' + q.toString())
+  }
+  if (!session?.running || (startedFont && fontKey(startedFont) === fontKey(f))) {
+    saveFont(f)
+    showFont(f)
+    return
+  }
+  $('fonttext').textContent =
+    `XPP picks its fonts when it starts. Restart XPP now with ${f.big} (menus) and ${f.small} (small text)? ` +
+    'The model and the files in XPP\'s folder are kept; you can save the session first.'
+  ;($('fontsize') as HTMLDetailsElement).open = false
+  fontDialog.returnValue = ''
+  fontDialog.showModal()
+  const answer = await new Promise<string>((r) => fontDialog.addEventListener('close', () => r(fontDialog.returnValue), { once: true }))
+  if (answer === 'now') {
+    saveFont(f)
+    leaveThen(() => restartWith(new TextDecoder().decode(session!.readFile(odeName))), () => showFont(startedFont!))
+  } else if (answer === 'later') {
+    saveFont(f)
+    showFont(f)
+    notice('The new font size is used the next time XPP starts')
+  } else {
+    showFont(startedFont ?? chosenFont()) // cancelled: back to what is in use
+  }
+}
+$('fontpanel').addEventListener('change', (e) => {
+  const t = e.target as HTMLElement
+  // picking "Custom" only opens the two lists; choosing in them applies
+  if (t instanceof HTMLInputElement && t.value === 'custom') {
+    $('fontpick').classList.add('on')
+    return
+  }
+  if (t.id === 'fontbig' || t.id === 'fontsmall') {
+    const c = fontRadios().find((x) => x.value === 'custom')
+    if (c) c.checked = true
+  }
+  void changeFont()
+})
+showFont()

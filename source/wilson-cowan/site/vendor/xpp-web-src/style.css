@@ -1,0 +1,2190 @@
+:root {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  color-scheme: light dark;
+  --bg: #f4f4f2;
+  --fg: #1d1d1b;
+  --muted: #6b6b66;
+  --bar: #ffffff;
+  --line: #d8d8d2;
+  --desk: #5c6670;
+  --panel-bar: #e6e6e1;
+  --panel-bar-active: #d5dbe3;
+  --hint: #e8ebee;
+  --hint-muted: #c3cad1;
+  --accent: #2f5d8a;
+  --accent-fg: #ffffff;
+  --term-bg: #1b1c1e;
+  --term-head: #26282b;
+  --term-fg: #e4e4e0;
+}
+
+/* themes: "System" (no data-theme) follows the OS light/dark setting */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --bg: #18191b;
+    --fg: #e6e6e3;
+    --muted: #9a9a95;
+    --bar: #222326;
+    --line: #34363a;
+    --desk: #2a3038;
+    --panel-bar: #34363a;
+    --panel-bar-active: #3d4652;
+    --accent: #4b7fb3;
+  }
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #18191b;
+  --fg: #e6e6e3;
+  --muted: #9a9a95;
+  --bar: #222326;
+  --line: #34363a;
+  --desk: #2a3038;
+  --panel-bar: #34363a;
+  --panel-bar-active: #3d4652;
+  --accent: #4b7fb3;
+}
+
+:root[data-theme='midnight'] {
+  color-scheme: dark;
+  --bg: #0b1426;
+  --fg: #dbe4f3;
+  --muted: #8ea0bf;
+  --bar: #101d36;
+  --line: #22355a;
+  --desk: #14274a;
+  --panel-bar: #1c3158;
+  --panel-bar-active: #26437a;
+  --hint: #dbe4f3;
+  --hint-muted: #8ea0bf;
+  --accent: #3d7bd9;
+  --term-bg: #08101f;
+  --term-head: #101d36;
+  --term-fg: #cfdcf2;
+}
+
+:root[data-theme='solarized-light'] {
+  color-scheme: light;
+  --bg: #fdf6e3;
+  --fg: #586e75;
+  --muted: #93a1a1;
+  --bar: #eee8d5;
+  --line: #d9d2bd;
+  --desk: #586e75;
+  --panel-bar: #eee8d5;
+  --panel-bar-active: #e4dcc3;
+  --hint: #fdf6e3;
+  --hint-muted: #eee8d5;
+  --accent: #268bd2;
+  --term-bg: #002b36;
+  --term-head: #073642;
+  --term-fg: #93a1a1;
+}
+
+:root[data-theme='solarized-dark'] {
+  color-scheme: dark;
+  --bg: #002b36;
+  --fg: #93a1a1;
+  --muted: #657b83;
+  --bar: #073642;
+  --line: #0f4a59;
+  --desk: #0a3a47;
+  --panel-bar: #073642;
+  --panel-bar-active: #0f4a59;
+  --hint: #93a1a1;
+  --hint-muted: #657b83;
+  --accent: #268bd2;
+  --term-bg: #001f27;
+  --term-head: #073642;
+  --term-fg: #93a1a1;
+}
+
+:root[data-theme='nord'] {
+  color-scheme: dark;
+  --bg: #2e3440;
+  --fg: #e5e9f0;
+  --muted: #a3acbd;
+  --bar: #3b4252;
+  --line: #4c566a;
+  --desk: #434c5e;
+  --panel-bar: #3b4252;
+  --panel-bar-active: #4c566a;
+  --hint: #eceff4;
+  --hint-muted: #d8dee9;
+  --accent: #5e81ac;
+  --term-bg: #242933;
+  --term-head: #2e3440;
+  --term-fg: #d8dee9;
+}
+
+:root[data-theme='dracula'] {
+  color-scheme: dark;
+  --bg: #21222c;
+  --fg: #f8f8f2;
+  --muted: #a4a7c4;
+  --bar: #282a36;
+  --line: #44475a;
+  --desk: #343746;
+  --panel-bar: #44475a;
+  --panel-bar-active: #6272a4;
+  --hint: #f8f8f2;
+  --hint-muted: #bd93f9;
+  --accent: #bd93f9;
+  --accent-fg: #21222c;
+  --term-bg: #191a21;
+  --term-head: #282a36;
+  --term-fg: #f8f8f2;
+}
+
+:root[data-theme='sepia'] {
+  color-scheme: light;
+  --bg: #f4ecd8;
+  --fg: #4b3b2a;
+  --muted: #8a7558;
+  --bar: #faf4e6;
+  --line: #ddcfb0;
+  --desk: #7a6344;
+  --panel-bar: #ebdfc4;
+  --panel-bar-active: #dccaa3;
+  --hint: #faf4e6;
+  --hint-muted: #f1e6cc;
+  --accent: #8b5a2b;
+  --term-bg: #2b2117;
+  --term-head: #3a2d20;
+  --term-fg: #eadcc3;
+}
+
+:root[data-theme='contrast'] {
+  color-scheme: dark;
+  --bg: #000000;
+  --fg: #ffffff;
+  --muted: #e0e0e0;
+  --bar: #000000;
+  --line: #ffffff;
+  --desk: #000000;
+  --panel-bar: #000000;
+  --panel-bar-active: #1a1a1a;
+  --hint: #ffffff;
+  --hint-muted: #ffff00;
+  --accent: #ffff00;
+  --accent-fg: #000000;
+  --term-bg: #000000;
+  --term-head: #000000;
+  --term-fg: #ffffff;
+}
+
+:root[data-theme='contrast'] .xwin {
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
+/* ---- funky themes: a multi-coloured stripe under the toolbar ---------------- */
+:root[data-theme^='funky'] .bar {
+  border-bottom: 3px solid transparent;
+  border-image: var(--stripe) 1;
+}
+
+/* Fairy Floss, github.com/sailorhg/fairyfloss (MIT): palette on the page around XPP, with a glow behind the windows */
+:root[data-theme='funky1'] {
+  color-scheme: dark;
+  --bg: #4a4466;
+  --fg: #f8f8f2;
+  --muted: #cbc4e6;
+  --bar: #5a5475;
+  --line: #716799;
+  --desk: radial-gradient(circle at 12% 18%, #ffb8d155 0, transparent 42%),
+    radial-gradient(circle at 88% 28%, #c2ffdf50 0, transparent 42%),
+    radial-gradient(circle at 50% 100%, #c5a3ff48 0, transparent 50%),
+    #5a5475;
+  --panel-bar: #716799;
+  --panel-bar-active: #8077a8;
+  --hint: #f8f8f2;
+  --hint-muted: #fff352;
+  --accent: #ffb8d1;
+  --accent-fg: #3f3a56;
+  --term-bg: #3f3a56;
+  --term-head: #4a4466;
+  --term-fg: #f8f8f2;
+  --stripe: linear-gradient(90deg, #ffb8d1, #c5a3ff, #c2ffdf, #fff352, #ff857f);
+}
+
+/* Night Owl, github.com/sdras/night-owl-vscode-theme (MIT): palette on the page around XPP, with a glow behind the windows */
+:root[data-theme='funky2'] {
+  color-scheme: dark;
+  --bg: #01111d;
+  --fg: #d6deeb;
+  --muted: #7e97ac;
+  --bar: #011627;
+  --line: #1d3b53;
+  --desk: radial-gradient(circle at 12% 18%, #82aaff55 0, transparent 42%),
+    radial-gradient(circle at 88% 28%, #c792ea50 0, transparent 42%),
+    radial-gradient(circle at 50% 100%, #addb6748 0, transparent 50%),
+    #011627;
+  --panel-bar: #0b2942;
+  --panel-bar-active: #1d3b53;
+  --hint: #d6deeb;
+  --hint-muted: #7fdbca;
+  --accent: #82aaff;
+  --accent-fg: #011627;
+  --term-bg: #010e1a;
+  --term-head: #01111d;
+  --term-fg: #d6deeb;
+  --stripe: linear-gradient(90deg, #82aaff, #c792ea, #7fdbca, #addb67, #f78c6c);
+}
+
+/* Synthwave '84, github.com/robb0wen/synthwave-vscode (MIT): palette on the page around XPP, with a glow behind the windows */
+:root[data-theme='funky3'] {
+  color-scheme: dark;
+  --bg: #1e1a2b;
+  --fg: #ffffff;
+  --muted: #b6b1d0;
+  --bar: #241b2f;
+  --line: #463465;
+  --desk: radial-gradient(circle at 12% 18%, #ff7edb55 0, transparent 42%),
+    radial-gradient(circle at 88% 28%, #36f9f650 0, transparent 42%),
+    radial-gradient(circle at 50% 100%, #fede5d48 0, transparent 50%),
+    #262335;
+  --panel-bar: #34294f;
+  --panel-bar-active: #463465;
+  --hint: #ffffff;
+  --hint-muted: #fede5d;
+  --accent: #ff7edb;
+  --accent-fg: #241b2f;
+  --term-bg: #171520;
+  --term-head: #241b2f;
+  --term-fg: #f4eee4;
+  --stripe: linear-gradient(90deg, #ff7edb, #36f9f6, #fede5d, #f97e72, #72f1b8);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: var(--app-h, 100%); /* touch devices: the area above the keyboard */
+}
+
+/* ---- top bar ---------------------------------------------------------- */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 12px;
+  background: var(--bar);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Bard's icon picture beside the name */
+.brand-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  flex: none;
+}
+
+.start,
+.session {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.start[hidden],
+.session[hidden] {
+  display: none;
+}
+
+.sep {
+  color: var(--muted);
+}
+
+select,
+button,
+.file {
+  font: inherit;
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+label select {
+  margin-left: 6px;
+}
+
+#status {
+  max-width: 28ch;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--muted);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.files {
+  position: relative;
+}
+
+.files summary {
+  cursor: pointer;
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  list-style: none;
+}
+
+.files-panel {
+  position: absolute;
+  z-index: 100000;
+  top: calc(100% + 4px);
+  left: 0;
+  width: min(460px, calc(100vw - 32px));
+  max-height: 70vh;
+  overflow: auto;
+  padding: 10px 12px;
+  background: var(--bar);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.2);
+}
+
+.files-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.files-head span {
+  flex: 1;
+  color: var(--muted);
+}
+
+.files-panel table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.files-panel td {
+  padding: 3px 4px;
+  border-top: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.files-panel td a {
+  color: var(--fg);
+}
+
+.files-panel td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.files-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.badge:not(:empty) {
+  display: inline-block;
+  min-width: 18px;
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--panel-bar-active);
+  font-size: 11px;
+  text-align: center;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+button.small,
+.file.small {
+  padding: 1px 8px;
+  font-size: 12px;
+}
+
+/* ---- desktop and XPP windows ------------------------------------------ */
+.desktop {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: var(--desk);
+}
+
+.desktop.bell {
+  animation: bell 0.15s;
+}
+
+@keyframes bell {
+  50% {
+    filter: brightness(1.4);
+  }
+}
+
+.hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 16px;
+  color: var(--hint);
+  text-align: center;
+}
+
+.hint p {
+  margin: 0;
+  font-size: 18px;
+}
+
+
+.hint .drophint {
+  max-width: 34em;
+  margin-top: 6px;
+  font-size: 15px;
+  color: var(--hint-muted);
+}
+
+/* phones and tablets: no files to drag */
+@media (hover: none) and (pointer: coarse) {
+  .hint .drophint {
+    display: none;
+  }
+}
+
+/* files dragged over the XPP area */
+.desktop.dropping .hint {
+  visibility: hidden;
+}
+
+.desktop.dropping::after {
+  content: 'Drop files here';
+  position: absolute;
+  inset: 10px;
+  z-index: 200000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px dashed var(--hint);
+  border-radius: 12px;
+  background: rgb(0 0 0 / 0.35);
+  color: var(--hint);
+  font: 600 22px system-ui, sans-serif;
+  pointer-events: none;
+}
+
+.hint .loadtext {
+  font-size: 16px;
+  color: var(--hint-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* progress bar while XPP's WebAssembly downloads */
+.loadbar {
+  width: min(320px, 70vw);
+  height: 8px;
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgb(255 255 255 / 0.15);
+  transition: opacity 0.4s;
+}
+
+.loadbar.done {
+  opacity: 0;
+}
+
+#loadfill {
+  width: 0;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+  transition: width 0.15s;
+}
+
+#switch {
+  max-width: 16ch;
+}
+
+.xwin {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  /* no border: the canvas must sit exactly at the window's X position */
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.45), 0 6px 20px rgb(0 0 0 / 0.35);
+  background: var(--panel-bar);
+}
+
+.xwin-bar {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 4px 0 8px;
+  background: var(--panel-bar);
+  font-size: 12px;
+  cursor: move;
+  user-select: none;
+}
+
+.xwin:hover .xwin-bar {
+  background: var(--panel-bar-active);
+}
+
+.xwin-title {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.xwin-btn {
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.xwin-canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+
+.xwin-grip {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 12px;
+  height: 12px;
+  cursor: nwse-resize;
+}
+
+/* ---- layout: desktop + optional output panel --------------------------- */
+.layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.term {
+  display: flex;
+  flex-direction: column;
+  width: 380px;
+  min-width: 200px;
+  max-width: 70vw;
+  resize: horizontal;
+  overflow: hidden;
+  direction: rtl; /* resize grip on the left edge */
+  background: var(--term-bg);
+  color: var(--term-fg);
+  border-left: 1px solid var(--line);
+}
+
+.term > * {
+  direction: ltr;
+}
+
+.term[hidden] {
+  display: none;
+}
+
+.term-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  background: var(--term-head);
+  font-size: 12px;
+}
+
+.term-head span {
+  flex: 1;
+}
+
+.term-head .xwin-btn {
+  color: var(--term-fg);
+}
+
+.term pre {
+  flex: 1;
+  margin: 0;
+  padding: 8px 10px;
+  overflow: auto;
+  font: 12px/1.35 ui-monospace, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+}
+
+/* ---- .ode editor ------------------------------------------------------ */
+dialog#editor,
+dialog#sceditor {
+  width: min(900px, calc(100vw - 32px));
+  height: min(80vh, 760px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bar);
+  color: var(--fg);
+}
+
+dialog#editor::backdrop,
+dialog#sceditor::backdrop {
+  background: rgb(0 0 0 / 0.35);
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.editor-head,
+.editor-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+}
+
+.editor-foot {
+  justify-content: flex-end;
+  border-top: 1px solid var(--line);
+}
+
+.editor-head input {
+  font: 13px ui-monospace, Menlo, Consolas, monospace;
+}
+
+.editor textarea {
+  flex: 1;
+  margin: 0 12px;
+  padding: 8px;
+  resize: none;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 13px/1.4 ui-monospace, Menlo, Consolas, monospace;
+}
+
+/* ---- leave / save-session dialog --------------------------------------- */
+dialog#leave,
+dialog#needfiles,
+dialog#loadfail {
+  width: min(520px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bar);
+  color: var(--fg);
+}
+
+dialog#leave::backdrop,
+dialog#needfiles::backdrop,
+dialog#loadfail::backdrop {
+  background: rgb(0 0 0 / 0.35);
+}
+
+.leave h3 {
+  margin: 0;
+  padding: 16px 18px 6px;
+  font-size: 17px;
+}
+
+.leave p {
+  margin: 0;
+  padding: 0 18px 14px;
+  color: var(--muted);
+}
+
+#needlist {
+  margin: 0 0 14px;
+  padding: 0 18px 0 40px;
+  font-family: ui-monospace, monospace;
+}
+
+#failtext {
+  max-height: 40vh;
+  margin: 0 18px 12px;
+  padding: 8px 10px;
+  overflow: auto;
+  border-radius: 4px;
+  background: var(--desk);
+  color: var(--hint);
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+label.primary-file {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+
+/* ---- settings popover ---------------------------------------------------- */
+.settings {
+  position: relative;
+}
+
+.settings summary {
+  cursor: pointer;
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  list-style: none;
+}
+
+.settings-panel {
+  position: absolute;
+  z-index: 100000;
+  top: calc(100% + 4px);
+  right: 0;
+  display: grid;
+  gap: 10px;
+  min-width: 280px;
+  padding: 12px 14px;
+  background: var(--bar);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.2);
+}
+
+.settings-panel label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.settings-panel .check {
+  justify-content: flex-start;
+}
+
+/* ---- theme menu ------------------------------------------------------------ */
+.themes {
+  position: relative;
+  margin-left: auto; /* right end of the toolbar */
+}
+
+.themes summary {
+  list-style: none;
+}
+
+.themes summary::-webkit-details-marker {
+  display: none;
+}
+
+/* round icon buttons (theme, Aa; Install on phones and tablets) */
+summary.round,
+:root:not([data-device='desktop']) .install {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+summary.round:hover,
+:root:not([data-device='desktop']) .install:hover,
+.themes[open] summary.round {
+  background: var(--panel-bar-active);
+}
+
+summary.round:focus-visible,
+:root:not([data-device='desktop']) .install:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.themes-panel {
+  position: absolute;
+  z-index: 100000;
+  top: calc(100% + 4px);
+  right: 0;
+  display: grid;
+  gap: 2px;
+  min-width: 210px;
+  padding: 6px;
+  background: var(--bar);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
+}
+
+.themes-panel button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  text-align: left;
+}
+
+.themes-panel button:hover,
+.themes-panel button[aria-checked='true'] {
+  background: var(--panel-bar-active);
+}
+
+.swatch {
+  display: inline-flex;
+  width: 34px;
+  height: 18px;
+  overflow: hidden;
+  border: 1px solid rgb(127 127 127 / 0.5);
+  border-radius: 3px;
+}
+
+.swatch i {
+  flex: 1;
+}
+
+/* ---- zoomable layer of XPP windows --------------------------------------- */
+.world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+.offstage {
+  display: none !important;
+}
+
+/* ---- phones and tablets (html[data-device]) -------------------------------- */
+.menubtn,
+.wintabs,
+.keystrip,
+.zoombar,
+.kbdsink {
+  display: none;
+}
+
+:root[data-device='phone'] .desktop,
+:root[data-device='tablet'] .desktop {
+  touch-action: none; /* we handle pinch and pan ourselves */
+}
+
+:root[data-device='phone'] .xwin-bar,
+:root[data-device='tablet'] .xwin-bar {
+  height: 32px;
+  font-size: 13px;
+}
+
+:root[data-device='phone'] .xwin-btn,
+:root[data-device='tablet'] .xwin-btn {
+  min-width: 34px;
+  height: 30px;
+  font-size: 18px;
+}
+
+:root[data-device='phone'] .xwin-grip,
+:root[data-device='tablet'] .xwin-grip {
+  width: 24px;
+  height: 24px;
+  right: -8px;
+  bottom: -8px;
+}
+
+/* zoom buttons over the desktop */
+:root[data-device='phone'] .zoombar,
+:root[data-device='tablet'] .zoombar {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 99999;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bar);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.3);
+}
+
+.zoombar button {
+  min-width: 44px;
+  height: 40px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 17px;
+}
+
+.zoombar button + button {
+  border-left: 1px solid var(--line);
+}
+
+/* on-screen key strip: shown with the keyboard (⌨) */
+:root[data-device='phone'].kbd-open .keystrip,
+:root[data-device='tablet'].kbd-open .keystrip {
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  overflow-x: auto;
+  background: var(--bar);
+  border-top: 1px solid var(--line);
+}
+
+.keystrip button {
+  flex: 1 0 auto;
+  min-width: 44px;
+  height: 40px;
+  padding: 0 8px;
+  font-size: 15px;
+  touch-action: manipulation;
+}
+
+.zoombar button.on,
+.keystrip button.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+
+/* the hidden field that brings up the device keyboard (16px: no iOS zoom) */
+:root[data-device='phone'] .kbdsink,
+:root[data-device='tablet'] .kbdsink {
+  display: block;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  font-size: 16px;
+  border: 0;
+  padding: 0;
+}
+
+/* phones: window tabs in the toolbar row, and a ☰ menu */
+:root[data-device='phone'] .wintabs:not(:empty) {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 4px;
+  overflow-x: auto;
+  order: 5;
+}
+
+:root[data-device='phone'] .brand {
+  font-size: 13px;
+}
+
+.wintabs button {
+  flex: 0 0 auto;
+  max-width: 40vw;
+  height: 34px;
+  padding: 0 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wintabs button[aria-current='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+
+:root[data-device='phone'] .bar {
+  position: relative;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 4px 8px;
+}
+
+:root[data-device='phone'] .menubtn {
+  display: block;
+  order: 10;
+  margin-left: auto;
+  width: 40px;
+  height: 34px;
+  padding: 0;
+  font-size: 18px;
+}
+
+:root[data-device='phone'] .themes {
+  order: 11;
+  margin-left: 0;
+}
+
+:root[data-device='phone'] .session {
+  display: none;
+}
+
+:root[data-device='phone'] header.menu-open .session:not([hidden]) {
+  position: absolute;
+  z-index: 100001;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bar);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
+}
+
+:root[data-device='phone'] header.menu-open .session > * {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* one column that scrolls (wrapping put Scripts, Settings, ... in a second
+   column outside the menu on landscape phones) */
+:root[data-device='phone'] header.menu-open .session:not([hidden]) {
+  flex-wrap: nowrap;
+  overflow-y: auto;
+}
+
+:root[data-device='phone'] .settings-panel,
+:root[data-device='phone'] .files-panel {
+  position: static;
+  margin-top: 6px;
+  box-shadow: none;
+  width: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+:root[data-device='phone'] .files-head {
+  flex-wrap: wrap;
+}
+
+:root[data-device='phone'] .files-panel td:first-child {
+  white-space: normal;
+  word-break: break-all;
+}
+
+:root[data-device='phone'] .start {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+:root[data-device='phone'] .start select {
+  max-width: 55vw;
+}
+
+:root[data-device='phone'] .term {
+  display: none !important; /* no room: use "Separate window" on phones */
+}
+
+:root[data-device='phone'] button,
+:root[data-device='phone'] select,
+:root[data-device='phone'] summary {
+  min-height: 36px;
+}
+
+/* ---- command panel (touch) ------------------------------------------------- */
+.cmdpanel {
+  display: none;
+}
+
+:root[data-device='phone'] .cmdpanel.open,
+:root[data-device='tablet'] .cmdpanel.open {
+  position: absolute;
+  right: 10px;
+  bottom: 60px;
+  z-index: 99999;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  width: min(420px, calc(100% - 20px));
+  max-height: calc(100% - 80px);
+  overflow: auto;
+  padding: 10px;
+  background: var(--bar);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.35);
+}
+
+.cmdpanel button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 4px;
+  line-height: 1.15;
+  touch-action: manipulation;
+}
+
+.cmdpanel button small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* ---- phones in landscape, XPP running: toolbar as a rail on the left, zoom
+   and Cmd in a column on the right, so XPP's window gets the full height ---- */
+:root[data-device='phone'][data-orient='landscape'] #app:has(> header #session:not([hidden])) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+/* rail: both rows; XPP's area top right; the key strip (with ⌨) under it */
+:root[data-device='phone'][data-orient='landscape'] #app:has(> header #session:not([hidden])) > header {
+  grid-row: 1 / 3;
+  grid-column: 1;
+}
+
+:root[data-device='phone'][data-orient='landscape'] #app:has(> header #session:not([hidden])) > .layout {
+  grid-row: 1;
+  grid-column: 2;
+}
+
+:root[data-device='phone'][data-orient='landscape'] #app:has(> header #session:not([hidden])) > .keystrip {
+  grid-row: 2;
+  grid-column: 2;
+}
+
+:root[data-device='phone'][data-orient='landscape'] header.bar:has(#session:not([hidden])) {
+  flex-direction: column;
+  align-items: stretch;
+  flex: 0 0 auto;
+  width: 104px;
+  padding: calc(6px + env(safe-area-inset-top)) 6px 6px calc(6px + env(safe-area-inset-left));
+  border-bottom: 0;
+  border-right: 1px solid var(--line);
+  overflow: visible;
+}
+
+:root[data-device='phone'][data-orient='landscape'] header.bar:has(#session:not([hidden])) .brand {
+  display: none;
+}
+
+:root[data-device='phone'][data-orient='landscape'] header.bar:has(#session:not([hidden])) .menubtn {
+  order: 0;
+  width: 100%;
+  margin: 0;
+}
+
+/* the install icon in the rail: with Aa and the theme button at the bottom */
+:root[data-device='phone'][data-orient='landscape'] header.bar:has(#session:not([hidden])) .install {
+  order: 18;
+  margin: auto 0 0;
+  align-self: center;
+}
+
+:root[data-device='phone'][data-orient='landscape'] header.bar:has(#session:not([hidden])) .install:not([hidden]) ~ .fontsize {
+  margin-top: 0;
+}
+
+:root[data-device='phone'][data-orient='landscape'] header.bar:has(#session:not([hidden])) .themes {
+  order: 20;
+  margin-top: auto;
+  align-self: center;
+}
+
+:root[data-device='phone'][data-orient='landscape'] header.bar:has(#session:not([hidden])) .themes-panel {
+  top: auto;
+  bottom: 0;
+  right: auto;
+  left: calc(100% + 8px);
+  max-height: calc(100vh - 16px);
+  overflow: auto;
+}
+
+/* window tabs: a vertical list */
+:root[data-device='phone'][data-orient='landscape'] .wintabs:not(:empty) {
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+:root[data-device='phone'][data-orient='landscape'] .wintabs button {
+  max-width: none;
+  width: 100%;
+  padding: 0 6px;
+}
+
+/* ☰ opens beside the rail */
+:root[data-device='phone'][data-orient='landscape'] header.menu-open .session:not([hidden]) {
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  right: auto;
+  width: min(340px, 60vw);
+  overflow-y: auto;
+  border-bottom: 0;
+  border-right: 1px solid var(--line);
+}
+
+:root[data-device='phone'][data-orient='landscape'] .layout {
+  min-width: 0;
+}
+
+/* zoom/Cmd: a column on the right edge */
+:root[data-device='phone'][data-orient='landscape'] .zoombar {
+  flex-direction: column;
+  top: 50%;
+  bottom: auto;
+  right: calc(8px + env(safe-area-inset-right));
+  transform: translateY(-50%);
+}
+
+:root[data-device='phone'][data-orient='landscape'] .zoombar button + button {
+  border-left: 0;
+  border-top: 1px solid var(--line);
+}
+
+:root[data-device='phone'][data-orient='landscape'] .cmdpanel.open {
+  right: calc(72px + env(safe-area-inset-right));
+  bottom: 8px;
+  top: 8px;
+  max-height: none;
+  width: min(520px, calc(100% - 90px));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: start;
+}
+
+/* ---- installable app: Install button, "new version" banner ----------------- */
+.install {
+  margin-left: auto; /* right end of the toolbar, before the theme button */
+}
+
+/* computers: the word; phones and tablets: a small round icon */
+.install svg,
+:root:not([data-device='desktop']) .install span {
+  display: none;
+}
+
+:root:not([data-device='desktop']) .install svg {
+  display: block;
+}
+
+.install:not([hidden]) ~ .themes {
+  margin-left: 0;
+}
+
+:root[data-device='phone'] .install {
+  order: 9;
+}
+
+:root[data-device='phone'] header:has(.install:not([hidden])) .menubtn {
+  margin-left: 0;
+}
+
+.toast {
+  position: fixed;
+  z-index: 200000;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  max-width: calc(100vw - 32px);
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bar);
+  color: var(--fg);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.3);
+}
+
+/* ---- inside the Android app (src/android.ts): no browser pop-ups or install */
+.android-app #install,
+.android-app label:has(#separate),
+.android-app .xwin-btn[title^='Open in a separate'] {
+  display: none;
+}
+
+/* ---- XPP font size (Aa) ---------------------------------------------------- */
+.fontsize {
+  position: relative;
+  margin-left: auto; /* right end of the toolbar, before the theme button */
+}
+
+.fontsize ~ .themes,
+.install:not([hidden]) ~ .fontsize {
+  margin-left: 0;
+}
+
+.fontsize summary {
+  list-style: none;
+  font: 600 14px/1 system-ui, sans-serif;
+}
+
+.fontsize summary::-webkit-details-marker {
+  display: none;
+}
+
+.fontsize[open] summary.round {
+  background: var(--panel-bar-active);
+}
+
+.fontsize-panel {
+  position: absolute;
+  z-index: 100000;
+  top: calc(100% + 4px);
+  right: 0;
+  display: grid;
+  gap: 4px;
+  min-width: 250px;
+  padding: 10px 12px;
+  background: var(--bar);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
+}
+
+.fontsize-head {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.fontsize-panel label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.fontsize-panel #fontpresets {
+  display: grid;
+  gap: 4px;
+}
+
+.fontsize-panel small {
+  margin-left: auto;
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+}
+
+.fontsize-pick {
+  display: none;
+  gap: 6px;
+  padding: 4px 0 0 22px;
+}
+
+.fontsize-pick.on {
+  display: grid;
+}
+
+.fontsize-pick label {
+  justify-content: space-between;
+}
+
+.fontsize-note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+:root[data-device='phone'] .fontsize {
+  order: 10;
+  margin-left: 0;
+}
+
+:root[data-device='phone'] .fontsize-panel {
+  position: fixed;
+  top: 52px;
+  right: 8px;
+  left: 8px;
+}
+
+/* settings that only make sense on phones and tablets */
+:root:not([data-device='phone']):not([data-device='tablet']) .touch-only {
+  display: none;
+}
+
+/* Stop (touch devices, while XPP computes) */
+.stopbtn {
+  display: none;
+}
+
+:root[data-device='phone'] .stopbtn:not([hidden]),
+:root[data-device='tablet'] .stopbtn:not([hidden]) {
+  display: block;
+  position: absolute;
+  z-index: 99999;
+  left: 50%;
+  bottom: 62px; /* above the zoom/Cmd buttons */
+  transform: translateX(-50%);
+  min-width: 120px;
+  height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 23px;
+  background: #c62828;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  box-shadow: 0 3px 12px rgb(0 0 0 / 0.35);
+}
+
+.toast.notice {
+  top: calc(56px + env(safe-area-inset-top, 0px));
+  bottom: auto;
+}
+
+/* phones: XPP's "Yo!" message box (e.g. "Click on initial data -- ESC to
+   quit") becomes a small note in the top-right corner, without its title
+   bar, so the graph stays free to tap (src/xpp.ts applyPhone). Esc/Back
+   still ends it. */
+.xwin.note-float {
+  left: auto !important;
+  right: 6px;
+  top: 6px !important;
+  transform: scale(0.62);
+  transform-origin: top right;
+  max-width: calc((100% - 12px) / 0.62);
+  overflow: hidden;
+  opacity: 0.9;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+  pointer-events: none; /* taps go to the graph underneath */
+}
+
+.xwin.note-float .xwin-bar,
+.xwin.note-float .xwin-grip {
+  display: none;
+}
+
+:root[data-orient='landscape'] .stopbtn:not([hidden]) {
+  bottom: 12px; /* the zoom/Cmd buttons are on the right */
+}
+
+/* ---- loupe (src/touch.ts): magnifies what is under a held finger ---------- */
+.loupe {
+  position: fixed;
+  z-index: 200001;
+  width: 128px;
+  pointer-events: none;
+  text-align: center;
+}
+
+.loupe[hidden] {
+  display: none;
+}
+
+.loupe canvas {
+  display: block;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  border: 3px solid var(--bar);
+  border-radius: 50%;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.4);
+  image-rendering: pixelated;
+}
+
+.loupe-xy {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--bar);
+  color: var(--fg);
+  font: 12px/1.4 ui-monospace, monospace;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+}
+
+.loupe-xy[hidden] {
+  display: none;
+}
+
+/* ---- slider drawer (src/touch.ts) ------------------------------------------ */
+.sliders {
+  position: absolute;
+  z-index: 99998;
+  left: 8px;
+  right: 8px;
+  bottom: 60px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bar);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.35);
+}
+
+.sliders[hidden] {
+  display: none;
+}
+
+:root[data-orient='landscape'] .sliders {
+  left: auto;
+  top: 8px;
+  bottom: 8px;
+  right: calc(72px + env(safe-area-inset-right));
+  width: min(460px, calc(100% - 90px));
+  align-content: start;
+  overflow-y: auto;
+}
+
+.sliders-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sliders-head span {
+  flex: 1;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sliders-close {
+  min-width: 36px;
+  font-size: 18px;
+}
+
+.slider-row {
+  display: grid;
+  grid-template-columns: 4.5em 1fr 4.5em 2.8em;
+  grid-template-areas:
+    'name name name out'
+    'lo range hi play';
+  gap: 6px;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.slider-row select { grid-area: name; min-width: 0; }
+.slider-row .lo { grid-area: lo; }
+.slider-row .hi { grid-area: hi; }
+.slider-row output { grid-area: out; justify-self: end; font: 14px ui-monospace, monospace; }
+.slider-row .play { grid-area: play; }
+.slider-row .range { grid-area: range; width: 100%; height: 34px; }
+
+.slider-row input[type='number'] {
+  min-width: 0;
+  padding: 4px 6px;
+  font: inherit;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.cmdpanel-title {
+  grid-column: 1 / -1;
+  font-weight: 600;
+  padding: 0 2px 2px;
+}
+
+.keystrip button.name {
+  font: 14px ui-monospace, monospace;
+  color: var(--accent);
+}
+
+/* first-run touch tips (src/mobile.ts showTips) */
+.tips {
+  position: fixed;
+  z-index: 200002;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  padding: 14px 16px;
+  background: var(--bar);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.45);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.tips h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.tips ul {
+  margin: 0 0 12px;
+  padding-left: 18px;
+}
+
+.tips li + li {
+  margin-top: 6px;
+}
+
+.tips button {
+  display: block;
+  margin-left: auto;
+  min-width: 90px;
+  min-height: 38px;
+}
+
+/* start screen: restore the auto-saved session */
+.restore {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+  margin: 0 auto 18px;
+  padding: 10px 14px;
+  max-width: 520px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bar);
+}
+
+.restore small {
+  color: var(--muted);
+}
+
+/* start screen (XPP not running): no zoom/Cmd buttons; keep the title on one line */
+#app:has(#session[hidden]) .zoombar {
+  display: none;
+}
+
+:root[data-device='phone'] .brand {
+  white-space: nowrap;
+}
+
+/* key strip: extra keys where there is room (landscape, tablets) */
+.keystrip button.wide {
+  display: none;
+}
+
+:root[data-orient='landscape'] .keystrip button.wide,
+:root[data-device='tablet'] .keystrip button.wide {
+  display: block;
+}
+
+/* start screen: recent models */
+.recent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 8px;
+  max-width: 640px;
+  margin: 0 auto 18px;
+}
+
+.recent > span {
+  color: var(--hint-muted); /* on the desktop colour, like the hint text */
+}
+
+.recent button {
+  font-size: 14px;
+}
+
+.recent .recent-clear {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+/* eigenvalues printed by Sing pts, shown on touch devices (src/main.ts) */
+.eigen {
+  position: fixed;
+  z-index: 200000;
+  left: 10px;
+  bottom: calc(70px + env(safe-area-inset-bottom, 0px)); /* clear of XPP's windows and the Cmd buttons */
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 10px;
+  min-width: 200px;
+  padding: 8px 12px;
+  background: var(--bar);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.35);
+}
+
+.eigen ol {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-left: 20px;
+  font: 14px/1.5 ui-monospace, monospace;
+}
+
+.eigen button {
+  min-width: 34px;
+}
+
+/* Aa in the landscape rail: above the theme button, panel opens beside the rail */
+:root[data-device='phone'][data-orient='landscape'] header.bar:has(#session:not([hidden])) .fontsize {
+  order: 19;
+  margin: auto 0 0;
+  align-self: center;
+}
+
+:root[data-device='phone'][data-orient='landscape'] header.bar:has(#session:not([hidden])) .fontsize ~ .themes {
+  margin-top: 0;
+}
+
+:root[data-device='phone'][data-orient='landscape'] header.bar:has(#session:not([hidden])) .fontsize-panel {
+  position: absolute;
+  top: auto;
+  bottom: 0;
+  right: auto;
+  left: calc(100% + 8px);
+  width: 280px;
+}
+
+/* phones, start screen: buttons on the first row, the example picker on its
+   own row below (room for Install, ☰, Aa and ◐) */
+:root[data-device='phone'] #app:has(#session[hidden]) > header.bar {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+:root[data-device='phone'] #app:has(#session[hidden]) > header.bar > .start {
+  order: 30;
+  flex-basis: 100%;
+}
+
+/* ---- XPP commands: see-through side panel (src/cmdlib.ts) ------------------- */
+.cmdlib {
+  position: fixed;
+  top: 52px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 200001;
+  display: flex;
+  flex-direction: column;
+  width: min(380px, calc(100vw - 16px));
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bar) 80%, transparent);
+  color: var(--fg);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.35);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.cmdlib[hidden] {
+  display: none;
+}
+
+.cmdlib-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 6px;
+}
+
+.cmdlib-count {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.cmdlib-close {
+  margin-left: auto;
+  padding: 0 8px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.cmdlib-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 12px 8px;
+}
+
+.cmdlib-tabs button[aria-selected='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+
+.cmdlib-list,
+.cmdlib-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0 12px 12px;
+}
+
+.cmdlib-list[hidden],
+.cmdlib-text[hidden] {
+  display: none;
+}
+
+.cmdlib-search {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  font: inherit;
+}
+
+.cmdlib-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.cmdlib-body h4 {
+  position: sticky;
+  top: 0;
+  margin: 10px 0 4px;
+  padding: 2px 0;
+  background: color-mix(in srgb, var(--bar) 92%, transparent);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cmdlib-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 3px;
+}
+
+.cmdlib-run {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 36px;
+  text-align: left;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+}
+
+.cmdlib-run small {
+  color: var(--muted);
+  font: 11px ui-monospace, monospace;
+  white-space: nowrap;
+}
+
+.cmdlib-side {
+  width: 40px;
+  font-size: 16px;
+}
+
+.cmdlib-none {
+  color: var(--muted);
+}
+
+.cmdlib-text textarea {
+  flex: 1;
+  min-height: 200px;
+  padding: 8px;
+  font: 13px/1.45 ui-monospace, monospace;
+  resize: none;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  color: var(--fg);
+}
+
+.cmdlib-problems {
+  color: #e5534b;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
+.cmdlib-foot {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+#cmdlibbtn {
+  justify-self: start;
+}
+
+.cmdlib-grip {
+  width: 30px;
+  padding: 0;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: grab;
+  touch-action: none; /* the finger drags the row, not the list */
+}
+
+.cmdlib-row.dragging {
+  position: relative;
+  z-index: 1;
+  opacity: 0.9;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.3);
+}
+
+.cmdlib-row.dragging .cmdlib-grip {
+  cursor: grabbing;
+}
+
+.cmdlib-row.own:not(.dragging) {
+  transition: transform 0.12s;
+}
+
+.cmdlib-body h4 {
+  display: flex;
+  align-items: center;
+}
+
+.cmdlib-reset {
+  margin-left: auto;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ---- voice commands (website) ------------------------------------------------ */
+.zoombar .micbtn.on,
+#voicehdr.on {
+  background: #b3261e;
+  color: #fff;
+}
+
+#voicehdr[hidden],
+.micbtn[hidden] {
+  display: none;
+}
+
+.voicebar {
+  position: fixed;
+  left: 50%;
+  bottom: 62px; /* above the zoom bar, clear of XPP's own top row */
+  transform: translateX(-50%);
+  z-index: 100001;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(520px, calc(100% - 16px));
+  padding: 6px 6px 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bar);
+  color: var(--fg);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.35);
+  font-size: 14px;
+}
+
+.voicebar[hidden] {
+  display: none;
+}
+
+/* what the microphone hears (offline engines; browser speech on computers) */
+.voicebar .vwave {
+  flex: none;
+  width: 96px;
+  height: 28px;
+}
+
+/* the level bar shows download progress only */
+.voicebar:not(.loading) .vmeter,
+.voicebar.loading .vwave {
+  display: none;
+}
+
+.voicebar .vcol {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* what may be said next, faint */
+.voicebar .vhint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  opacity: 0.55;
+}
+
+.voicebar .vhint:empty {
+  display: none;
+}
+
+.voicebar .vtext {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.voicebar.live .vtext {
+  font-weight: 600;
+}
+
+.voicebar .vmeter {
+  flex: none;
+  width: 34px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.voicebar .vmeter b {
+  display: block;
+  height: 100%;
+  background: #2e7d32;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 80ms linear;
+}
+
+.voicebar button {
+  flex: none;
+  min-height: 34px;
+  min-width: 60px;
+}
+
+/* the first 🎤: which engine */
+.voiceoffer .vchoice {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.voiceoffer .vchoice p {
+  margin: 4px 0 8px;
+  font-size: 13px;
+}
+
+.voiceoffer .row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* the voice tour */
+.voicetour .row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.voicetour .row .muted {
+  margin-right: auto;
+}
+
+/* "what can I say?" */
+.voicehelp table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.voicehelp td {
+  padding: 3px 4px;
+  border-top: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.voicehelp td:first-child {
+  font-style: italic;
+}
+
+/* Settings -> Voice */
+.voiceset {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.voiceteach {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.voiceteach select {
+  max-width: 180px;
+}
+
+.taught {
+  margin: 0;
+  padding: 0 0 0 4px;
+  list-style: none;
+  font-size: 12px;
+}
+
+.taught:empty {
+  display: none;
+}
+
+.taught li button {
+  min-width: 0;
+  padding: 0 6px;
+}
+
+.voiceabout {
+  margin: 0;
+  max-width: 420px;
+  font-size: 12px;
+  color: var(--muted);
+}

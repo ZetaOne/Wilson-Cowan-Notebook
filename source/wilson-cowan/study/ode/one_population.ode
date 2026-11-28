@@ -1,0 +1,8 @@
+# one population: tau a' = -a + f(w a + I)
+f(x)=1/(1+exp(-beta*(x-th)))
+a'=(-a+f(w*a+i))/tau
+par w=10,i=0,beta=1,th=5,tau=1
+init a=0.05
+# one excitatory population (Chapter 2): bistable for i in (-1.8, 1.8)
+@ meth=cvode,tol=1e-9,atol=1e-9,dt=0.02,total=100,maxstor=500000,bound=100000
+done

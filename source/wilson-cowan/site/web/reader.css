@@ -1,0 +1,83 @@
+/* reader.css -- the reading tools on the book page: toolbar, highlights, notes, drawer */
+:root { --hl-yellow: #ffe066; --hl-green: #a6e3a1; --hl-blue: #9cc9ff; --hl-pink: #ffadd2; --hl-purple: #cdb4ff }
+mark.hl { color: inherit; border-radius: 2px; padding: 0; cursor: pointer; box-decoration-break: clone; -webkit-box-decoration-break: clone }
+mark.hl-yellow { background: color-mix(in srgb, var(--hl-yellow) 70%, transparent) }
+mark.hl-green { background: color-mix(in srgb, var(--hl-green) 70%, transparent) }
+mark.hl-blue { background: color-mix(in srgb, var(--hl-blue) 70%, transparent) }
+mark.hl-pink { background: color-mix(in srgb, var(--hl-pink) 70%, transparent) }
+mark.hl-purple { background: color-mix(in srgb, var(--hl-purple) 70%, transparent) }
+:root[data-code='dark'] mark.hl { background-color: color-mix(in srgb, currentColor 0%, transparent) }
+:root[data-code='dark'] mark.hl-yellow { background: color-mix(in srgb, var(--hl-yellow) 34%, transparent) }
+:root[data-code='dark'] mark.hl-green { background: color-mix(in srgb, var(--hl-green) 34%, transparent) }
+:root[data-code='dark'] mark.hl-blue { background: color-mix(in srgb, var(--hl-blue) 34%, transparent) }
+:root[data-code='dark'] mark.hl-pink { background: color-mix(in srgb, var(--hl-pink) 34%, transparent) }
+:root[data-code='dark'] mark.hl-purple { background: color-mix(in srgb, var(--hl-purple) 34%, transparent) }
+mark.hl-has-note { border-bottom: 2px dotted currentColor }
+mark.hl-flash { outline: 3px solid var(--accent); outline-offset: 1px; transition: outline-color .3s }
+
+/* the tools, top right */
+.rtools { position: fixed; top: 8px; right: 12px; z-index: 60; display: flex; gap: 6px; align-items: center;
+  padding: 4px; border-radius: 999px; background: color-mix(in srgb, var(--bar) 88%, transparent);
+  border: 1px solid var(--line); box-shadow: 0 2px 10px rgb(0 0 0 / .12); backdrop-filter: blur(6px);
+  font: .8125rem/1.2 system-ui, sans-serif }
+.rtools .rt { display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; text-decoration: none; cursor: pointer }
+.rtools .rt:hover { background: var(--panel-bar-active); text-decoration: none }
+.rtools .panel { font-size: .875rem }
+.hl-fab-n:empty { display: none }
+.hl-fab-n { min-width: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: var(--accent-fg); font-size: .6875rem; line-height: 18px; text-align: center }
+.hl-fab { position: fixed; right: 14px; bottom: 14px; z-index: 60 }
+
+/* the selection bar */
+.hl-bar { position: fixed; z-index: 80; display: flex; gap: 6px; align-items: center; padding: 6px 8px; border-radius: 10px;
+  background: var(--bar); border: 1px solid var(--line); box-shadow: 0 6px 20px rgb(0 0 0 / .25); font: 13px system-ui, sans-serif }
+.hl-sw { display: flex; gap: 5px; align-items: center }
+.hl-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / .18) }
+.hl-dot.on { border-color: var(--fg) }
+.hl-dot.hl-yellow { background: var(--hl-yellow) } .hl-dot.hl-green { background: var(--hl-green) }
+.hl-dot.hl-blue { background: var(--hl-blue) } .hl-dot.hl-pink { background: var(--hl-pink) } .hl-dot.hl-purple { background: var(--hl-purple) }
+.hl-btn { font: inherit; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer }
+.hl-btn:hover { border-color: var(--accent) }
+.hl-btn.hl-del { color: #c0392b }
+.hl-btn.hl-primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent) }
+@media (pointer: coarse) { .hl-dot { width: 32px; height: 32px } .hl-btn { padding: 8px 12px } }
+
+/* the note dialog */
+.hl-dlg { position: fixed; z-index: 90; width: min(380px, calc(100vw - 20px)); padding: 12px; border-radius: 10px;
+  background: var(--bar); color: var(--fg); border: 1px solid var(--line); box-shadow: 0 10px 30px rgb(0 0 0 / .3); font: 14px system-ui, sans-serif }
+.hl-dlg-q { font-style: italic; color: var(--muted); margin-bottom: 8px; max-height: 6em; overflow: auto }
+.hl-dlg textarea { width: 100%; font: inherit; padding: 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); resize: vertical }
+.hl-dlg-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px }
+
+/* the drawer */
+.hl-drawer { position: fixed; z-index: 70; top: 0; right: 0; bottom: 0; width: min(400px, 100vw); overflow-y: auto;
+  background: var(--bar); color: var(--fg); border-left: 1px solid var(--line); box-shadow: -8px 0 24px rgb(0 0 0 / .18);
+  padding: 12px 14px 30px; font: 14px/1.45 system-ui, sans-serif }
+.hl-dh { display: flex; justify-content: space-between; align-items: center; font-size: 16px; margin-bottom: 8px }
+.hl-x { font-size: 22px; line-height: 1; background: none; border: 0; color: var(--fg); cursor: pointer; padding: 4px 8px }
+.hl-lab { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 6px 0 }
+.hl-lab > span { color: var(--muted); font-size: 13px }
+.hl-filt { display: grid; gap: 8px; margin: 12px 0 8px }
+.hl-filt input { font: inherit; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg) }
+.hl-all { font: 12px system-ui, sans-serif; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer }
+.hl-all.on { border-color: var(--fg) }
+.hl-ch { margin: 14px 0 4px; font-weight: 600; font-size: 13px; color: var(--accent) }
+.hl-item { padding: 8px 10px; margin: 6px 0; border-radius: 6px; background: var(--bg); border-left: 4px solid var(--line) }
+.hl-b-yellow { border-left-color: var(--hl-yellow) } .hl-b-green { border-left-color: var(--hl-green) }
+.hl-b-blue { border-left-color: var(--hl-blue) } .hl-b-pink { border-left-color: var(--hl-pink) } .hl-b-purple { border-left-color: var(--hl-purple) }
+.hl-q { cursor: pointer; font-family: Charter, Georgia, serif }
+.hl-n { margin-top: 4px; color: var(--muted); white-space: pre-wrap }
+.hl-acts { display: flex; gap: 10px; margin-top: 4px }
+.hl-acts button { font: 12px system-ui, sans-serif; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 2px 0 }
+.hl-empty, .hl-fine { color: var(--muted) }
+.hl-fine { font-size: 12px }
+.hl-io { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap }
+#side a.hl-seen .tocnum::after { content: "\2713"; font-size: .7em; margin-left: 2px; color: var(--accent) }
+.hl-cnt { margin-left: 6px; padding: 0 6px; border-radius: 9px; font-size: 11px; background: color-mix(in srgb, var(--hl-yellow) 60%, transparent); color: var(--fg) }
+@media print { .rtools, .hl-bar, .hl-drawer, .hl-dlg, .hl-fab { display: none !important } }
+@media (max-width: 760px) {
+  .rtools { top: auto; bottom: 10px; right: 50%; transform: translateX(50%) }
+  .rtools .rt { padding: 0 10px }
+  .rtools .panel { top: auto; bottom: calc(100% + 6px) }
+}
